@@ -11,7 +11,12 @@ export function AppRoutes() {
   const { session } = useAppContext()
 
   if (!isAuthorized(session, dashboardPolicy)) {
-    return <main className="dashboard-page">Access denied.</main>
+    return (
+      <main className="dashboard-page" aria-live="polite">
+        <h1>Access denied</h1>
+        <p>You do not have permission to view this area.</p>
+      </main>
+    )
   }
 
   return <DashboardPage />
