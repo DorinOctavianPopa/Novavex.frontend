@@ -26,6 +26,17 @@ src/
 └── main.tsx
 ```
 
+## Authentication and authorization architecture
+
+- **Authentication** uses a hybrid token model aligned with OIDC/OAuth2:
+  - short-lived access token (15 minutes)
+  - refresh token stored as **httpOnly cookie**
+- **Authorization** is enforced via combined **RBAC + ABAC** policies:
+  - RBAC with role checks (`super_admin`, `cto`, etc.)
+  - ABAC with attribute checks (`department`, `region`, `tenantId`, `clearanceLevel`)
+- Route-level access is handled in `src/routes/AppRoutes.tsx` via `isAuthorized`.
+- Cross-feature policy evaluation is centralized in `src/services/authorization.ts`.
+
 ## Feature anatomy
 
 The `inventory` feature is intentionally structured as the reference module:

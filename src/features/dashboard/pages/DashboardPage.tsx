@@ -1,18 +1,30 @@
 import { FeatureCard } from '@/components'
 import { appConfig, directoryBlueprint } from '@/config/appConfig'
+import { useAppContext } from '@/context'
 import { crmModule } from '@/features/crm'
 import { dashboardModule } from '@/features/dashboard/pages/module'
 import { financialModule } from '@/features/financial'
 import { InventoryDashboardPage, inventoryModule } from '@/features/inventory'
 import { useFeatureModules } from '@/hooks'
-import { useAppContext } from '@/context'
+import { isAuthorized } from '@/services'
 import { formatDirectoryName } from '@/utils'
 
 import './DashboardPage.css'
 
+const inventoryWritePolicy = {
+  anyRoles: ['super_admin', 'cto', 'inventory_manager'] as const,
+  allScopes: ['inventory:write'] as const,
+  attributeRules: [
+    { key: 'department', equals: 'operations' },
+    { key: 'region', equals: 'eu' },
+  ] as const,
+}
+
 export function DashboardPage() {
-  const { summary } = useAppContext()
+  const { summary, session, security } = useAppContext()
   const modules = useFeatureModules()
+
+  const canManageInventory = isAuthorized(session, inventoryWritePolicy)
 
   return (
     <main className="dashboard-page">
@@ -28,6 +40,30 @@ export function DashboardPage() {
       </section>
 
       <section className="content-grid">
+        <article className="panel panel--full">
+          <div className="panel__header">
+            <h2>Enterprise security baseline</h2>
+            <p>
+              Auth provider: <strong>{security.authentication.provider}</strong> · Access token TTL:{' '}
+              <strong>{security.authentication.accessTokenTtlMinutes} min</strong> · Refresh token:{' '}
+              <strong>{security.authentication.refreshTokenStorage}</strong>
+            </p>
+          </div>
+          <ul className="rules-list">
+            <li>
+              Signed in as <code>{session.user.email}</code> with role(s){' '}
+              <code>{session.user.roles.join(', ')}</code>
+            </li>
+            <li>
+              Authorization model: <code>{security.authorization.model}</code>
+            </li>
+            <li>
+              Inventory write permission:{' '}
+              <strong>{canManageInventory ? 'granted' : 'denied'}</strong> (RBAC + ABAC)
+            </li>
+          </ul>
+        </article>
+
         <article className="panel">
           <div className="panel__header">
             <h2>Recommended src layout</h2>
