@@ -1,5 +1,11 @@
 import { createContext } from 'react'
 
-import { appConfig } from '@/config/appConfig'
+import { appConfig, demoSession } from '@/config/appConfig'
+import type { AppContextValue } from '@/types'
 
-export const AppContext = createContext(appConfig)
+export const appContextValue: AppContextValue = {
+  ...appConfig,
+  session: demoSession,
+}
+
+export const AppContext = createContext(appContextValue)
