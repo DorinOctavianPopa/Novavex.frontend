@@ -1,0 +1,71 @@
+.authentication-page {
+  display: grid;
+  min-height: 100vh;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 2rem 1.5rem;
+}
+
+.authentication-panel {
+  width: min(100%, 28rem);
+  padding: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--bg-soft);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.authentication-panel__summary {
+  margin-top: 0.75rem;
+  color: var(--text-muted);
+}
+
+.authentication-form {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 2rem;
+}
+
+.authentication-form label {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.authentication-form input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text-strong);
+  font: inherit;
+}
+
+.authentication-form button {
+  margin-top: 0.5rem;
+  padding: 0.8rem 1rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.authentication-form button:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 480px) {
+  .authentication-page {
+    padding: 1rem;
+  }
+
+  .authentication-panel {
+    padding: 1.5rem;
+  }
+}
