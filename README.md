@@ -1,32 +1,57 @@
-# React + TypeScript + Vite
+# Novavex Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This project now uses a feature-driven React structure designed for an ERP that must remain modular, scalable, and easy to extend.
 
-Currently, two official plugins are available:
+## Directory structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```text
+src/
+├── assets/          # Global static assets
+├── components/      # Shared UI building blocks
+├── config/          # Global configuration and architecture metadata
+├── context/         # Global React context objects
+├── features/        # Isolated ERP modules
+│   ├── dashboard/
+│   ├── financial/
+│   ├── inventory/
+│   └── crm/
+├── hooks/           # Reusable hooks
+├── lib/             # Shared library integration points
+├── providers/       # Application-wide providers
+├── routes/          # Route composition entry points
+├── services/        # Shared service layer
+├── types/           # Global TypeScript types
+├── utils/           # Shared utility helpers
+├── App.tsx
+└── main.tsx
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Feature anatomy
+
+The `inventory` feature is intentionally structured as the reference module:
+
+```text
+src/features/inventory/
+├── api/
+├── components/
+├── hooks/
+├── pages/
+├── types/
+├── utils/
+└── index.ts
+```
+
+Only the public contract is exported from each feature barrel. For example, `src/features/inventory/index.ts` exposes the page component and public types while keeping internals private to the module.
+
+## TypeScript guardrails
+
+- `strict` mode is enabled
+- `@/` path aliases are configured for both TypeScript and Vite
+- Shared app wiring flows through `providers/` and `routes/`
+
+## Available scripts
+
+- `npm run dev`
+- `npm run build`
+- `npm run lint`
+- `npm run preview`
