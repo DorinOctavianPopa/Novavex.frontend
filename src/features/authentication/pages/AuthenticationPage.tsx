@@ -232,7 +232,7 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
                 />
                 <span>{t('auth.signIn.actions.rememberMe')}</span>
               </label>
-              <a href={supportLinks.forgotPassword} target="_blank" rel="noreferrer">{t('auth.signIn.actions.forgotPassword')}</a>
+              <a href={supportLinks.forgotPassword} target="_blank" rel="noopener noreferrer">{t('auth.signIn.actions.forgotPassword')}</a>
             </div>
 
             {submitError ? (
@@ -248,13 +248,13 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
 
           <p className="authentication-card__signup">
             {t('auth.signIn.signUpPrompt')}{' '}
-            <a href={supportLinks.createAccount} target="_blank" rel="noreferrer">{t('auth.signIn.actions.createAccount')}</a>
+            <a href={supportLinks.createAccount} target="_blank" rel="noopener noreferrer">{t('auth.signIn.actions.createAccount')}</a>
           </p>
 
           <footer className="authentication-card__footer">
-            <a href={supportLinks.support} target="_blank" rel="noreferrer">{t('auth.signIn.footer.support')}</a>
-            <a href={supportLinks.privacy} target="_blank" rel="noreferrer">{t('auth.signIn.footer.privacy')}</a>
-            <a href={supportLinks.terms} target="_blank" rel="noreferrer">{t('auth.signIn.footer.terms')}</a>
+            <a href={supportLinks.support} target="_blank" rel="noopener noreferrer">{t('auth.signIn.footer.support')}</a>
+            <a href={supportLinks.privacy} target="_blank" rel="noopener noreferrer">{t('auth.signIn.footer.privacy')}</a>
+            <a href={supportLinks.terms} target="_blank" rel="noopener noreferrer">{t('auth.signIn.footer.terms')}</a>
           </footer>
         </section>
       </section>
