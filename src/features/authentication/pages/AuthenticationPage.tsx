@@ -1,14 +1,23 @@
 import { useId, useState } from 'react'
 
 import { useAppContext } from '@/context'
+import type { SignInRequest } from '@/types'
 import { useTranslation } from 'react-i18next'
 
 import './AuthenticationPage.css'
 
 const rememberedEmailStorageKey = 'novavex.auth.rememberedEmail'
 
+const supportLinks = {
+  forgotPassword: 'https://novavex.example/recover-password',
+  createAccount: 'https://novavex.example/create-account',
+  support: 'https://novavex.example/support',
+  privacy: 'https://novavex.example/privacy',
+  terms: 'https://novavex.example/terms',
+} as const
+
 interface AuthenticationPageProps {
-  readonly onAuthenticate: (credentials: { email: string }) => Promise<void>
+  readonly onAuthenticate: (credentials: SignInRequest) => Promise<void>
 }
 
 type FormErrors = {
@@ -89,7 +98,7 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
         }
       }
 
-      await onAuthenticate({ email: email.trim() })
+      await onAuthenticate({ email: email.trim(), password })
     } catch {
       setSubmitError(t('auth.signIn.errors.generic'))
     } finally {
@@ -219,7 +228,7 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
                 />
                 <span>{t('auth.signIn.actions.rememberMe')}</span>
               </label>
-              <a href="#forgot-password">{t('auth.signIn.actions.forgotPassword')}</a>
+              <a href={supportLinks.forgotPassword}>{t('auth.signIn.actions.forgotPassword')}</a>
             </div>
 
             {submitError ? (
@@ -235,13 +244,13 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
 
           <p className="authentication-card__signup">
             {t('auth.signIn.signUpPrompt')}{' '}
-            <a href="#create-account">{t('auth.signIn.actions.createAccount')}</a>
+            <a href={supportLinks.createAccount}>{t('auth.signIn.actions.createAccount')}</a>
           </p>
 
           <footer className="authentication-card__footer">
-            <a href="#support">{t('auth.signIn.footer.support')}</a>
-            <a href="#privacy">{t('auth.signIn.footer.privacy')}</a>
-            <a href="#terms">{t('auth.signIn.footer.terms')}</a>
+            <a href={supportLinks.support}>{t('auth.signIn.footer.support')}</a>
+            <a href={supportLinks.privacy}>{t('auth.signIn.footer.privacy')}</a>
+            <a href={supportLinks.terms}>{t('auth.signIn.footer.terms')}</a>
           </footer>
         </section>
       </section>

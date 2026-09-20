@@ -13,10 +13,12 @@ export function AppContextProvider({
 }>) {
   const [session, setSession] = useState<AuthSession | null>(null)
 
-  const signIn = useCallback(async ({ email }: SignInRequest) => {
+  const signIn = useCallback(async ({ email, password }: SignInRequest) => {
     await new Promise((resolve) => {
       globalThis.setTimeout(resolve, simulatedNetworkDelayMs)
     })
+
+    void password
 
     setSession({
       ...demoSession,

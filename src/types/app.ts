@@ -33,6 +33,7 @@ export interface AppConfig {
 
 export interface SignInRequest {
   readonly email: string
+  readonly password: string
 }
 
 export interface AppContextValue extends AppConfig {
