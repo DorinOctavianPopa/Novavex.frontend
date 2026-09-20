@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 
+import { demoSignInCredentials } from '@/config/appConfig'
 import { useAppContext } from '@/context'
 import type { SignInRequest } from '@/types'
 import { useTranslation } from 'react-i18next'
@@ -8,13 +9,13 @@ import './AuthenticationPage.css'
 
 const rememberedEmailStorageKey = 'novavex.auth.rememberedEmail'
 
-const supportLinks = {
-  forgotPassword: 'https://novavex.example/recover-password',
-  createAccount: 'https://novavex.example/create-account',
-  support: 'https://novavex.example/support',
-  privacy: 'https://novavex.example/privacy',
-  terms: 'https://novavex.example/terms',
-} as const
+function getRememberedEmail() {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  return window.localStorage.getItem(rememberedEmailStorageKey) ?? ''
+}
 
 interface AuthenticationPageProps {
   readonly onAuthenticate: (credentials: SignInRequest) => Promise<void>
@@ -53,20 +54,17 @@ function validateForm(email: string, password: string, t: (key: string) => strin
 }
 
 export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPageProps>) {
-  const { name, summary } = useAppContext()
+  const { name, summary, supportLinks } = useAppContext()
   const { i18n, t } = useTranslation()
   const emailId = useId()
   const passwordId = useId()
   const activeLanguage = (i18n.resolvedLanguage ?? i18n.language).toLowerCase().startsWith('ro')
     ? 'ro'
     : 'en'
-  const initialRememberedEmail = typeof window === 'undefined'
-    ? ''
-    : window.localStorage.getItem(rememberedEmailStorageKey) ?? ''
-
-  const [email, setEmail] = useState(initialRememberedEmail)
+  const [rememberedEmail] = useState(getRememberedEmail)
+  const [email, setEmail] = useState(rememberedEmail)
   const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(Boolean(initialRememberedEmail))
+  const [rememberMe, setRememberMe] = useState(Boolean(rememberedEmail))
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -74,7 +72,6 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
     email: false,
     password: false,
   })
-
 
   const errors = validateForm(email, password, t)
 
@@ -90,6 +87,8 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
     setIsSubmitting(true)
 
     try {
+      await onAuthenticate({ email: email.trim(), password })
+
       if (typeof window !== 'undefined') {
         if (rememberMe) {
           window.localStorage.setItem(rememberedEmailStorageKey, email.trim())
@@ -97,10 +96,12 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
           window.localStorage.removeItem(rememberedEmailStorageKey)
         }
       }
-
-      await onAuthenticate({ email: email.trim(), password })
-    } catch {
-      setSubmitError(t('auth.signIn.errors.generic'))
+    } catch (error) {
+      if (error instanceof Error && error.message === 'invalid-credentials') {
+        setSubmitError(t('auth.signIn.errors.invalidCredentials'))
+      } else {
+        setSubmitError(t('auth.signIn.errors.generic'))
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -147,6 +148,9 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
           <div className="authentication-card__header">
             <h2 id="sign-in-title">{t('auth.signIn.title')}</h2>
             <p>{t('auth.signIn.description')}</p>
+            <p className="authentication-card__hint">
+              {t('auth.signIn.hint', demoSignInCredentials)}
+            </p>
           </div>
 
           <form className="authentication-form" onSubmit={handleSubmit} noValidate>
@@ -228,7 +232,7 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
                 />
                 <span>{t('auth.signIn.actions.rememberMe')}</span>
               </label>
-              <a href={supportLinks.forgotPassword}>{t('auth.signIn.actions.forgotPassword')}</a>
+              <a href={supportLinks.forgotPassword} target="_blank" rel="noreferrer">{t('auth.signIn.actions.forgotPassword')}</a>
             </div>
 
             {submitError ? (
@@ -244,13 +248,13 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
 
           <p className="authentication-card__signup">
             {t('auth.signIn.signUpPrompt')}{' '}
-            <a href={supportLinks.createAccount}>{t('auth.signIn.actions.createAccount')}</a>
+            <a href={supportLinks.createAccount} target="_blank" rel="noreferrer">{t('auth.signIn.actions.createAccount')}</a>
           </p>
 
           <footer className="authentication-card__footer">
-            <a href={supportLinks.support}>{t('auth.signIn.footer.support')}</a>
-            <a href={supportLinks.privacy}>{t('auth.signIn.footer.privacy')}</a>
-            <a href={supportLinks.terms}>{t('auth.signIn.footer.terms')}</a>
+            <a href={supportLinks.support} target="_blank" rel="noreferrer">{t('auth.signIn.footer.support')}</a>
+            <a href={supportLinks.privacy} target="_blank" rel="noreferrer">{t('auth.signIn.footer.privacy')}</a>
+            <a href={supportLinks.terms} target="_blank" rel="noreferrer">{t('auth.signIn.footer.terms')}</a>
           </footer>
         </section>
       </section>

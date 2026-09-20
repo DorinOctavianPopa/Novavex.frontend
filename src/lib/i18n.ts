@@ -45,6 +45,7 @@ const resources = {
           title: 'Welcome back',
           subtitle: 'Secure access for your Novavex workspace, operations, and ERP modules.',
           description: 'Use your work email to continue to the operations dashboard.',
+          hint: 'Preview access: {{email}} / {{password}}',
           fields: {
             email: 'Work email',
             password: 'Password',
@@ -80,6 +81,7 @@ const resources = {
             passwordLength: 'Use at least 8 characters for your password.',
           },
           errors: {
+            invalidCredentials: 'The provided credentials are not valid for this preview environment.',
             generic: 'We could not sign you in right now. Please try again.',
           },
         },
@@ -198,6 +200,7 @@ const resources = {
           title: 'Bine ai revenit',
           subtitle: 'Acces securizat la workspace-ul Novavex, operațiuni și modulele ERP.',
           description: 'Folosește emailul de serviciu pentru a continua către dashboard-ul operațional.',
+          hint: 'Acces preview: {{email}} / {{password}}',
           fields: {
             email: 'Email de serviciu',
             password: 'Parolă',
@@ -233,6 +236,7 @@ const resources = {
             passwordLength: 'Folosește cel puțin 8 caractere pentru parolă.',
           },
           errors: {
+            invalidCredentials: 'Credențialele introduse nu sunt valide pentru acest mediu preview.',
             generic: 'Autentificarea nu a reușit momentan. Încearcă din nou.',
           },
         },

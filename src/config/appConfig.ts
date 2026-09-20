@@ -4,6 +4,13 @@ export const appConfig: AppConfig = {
   name: 'Novavex ERP Frontend',
   summary:
     'Feature-driven React architecture for flexible ERP modules and independent delivery.',
+  supportLinks: {
+    forgotPassword: 'https://novavex.example/recover-password',
+    createAccount: 'https://novavex.example/create-account',
+    support: 'https://novavex.example/support',
+    privacy: 'https://novavex.example/privacy',
+    terms: 'https://novavex.example/terms',
+  },
   security: {
     authentication: {
       provider: 'oidc-oauth2',
@@ -50,3 +57,8 @@ export const directoryBlueprint: readonly DirectoryNode[] = [
   { name: 'types/', description: 'Global TypeScript contracts shared across features.' },
   { name: 'utils/', description: 'Pure helper functions reused in multiple areas.' },
 ] as const
+
+export const demoSignInCredentials = {
+  email: demoSession.user.email,
+  password: 'preview-access',
+} as const

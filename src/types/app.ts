@@ -13,6 +13,14 @@ export interface DirectoryNode {
   readonly description: string
 }
 
+export interface SupportLinks {
+  readonly forgotPassword: string
+  readonly createAccount: string
+  readonly support: string
+  readonly privacy: string
+  readonly terms: string
+}
+
 export interface SecurityConfig {
   readonly authentication: {
     readonly provider: 'oidc-oauth2'
@@ -29,6 +37,7 @@ export interface AppConfig {
   readonly name: string
   readonly summary: string
   readonly security: SecurityConfig
+  readonly supportLinks: SupportLinks
 }
 
 export interface SignInRequest {

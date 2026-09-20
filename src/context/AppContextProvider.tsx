@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { AppContext } from '@/context/AppContext'
-import { appConfig, demoSession } from '@/config/appConfig'
+import { appConfig, demoSession, demoSignInCredentials } from '@/config/appConfig'
 import type { AuthSession, SignInRequest } from '@/types'
 
 const simulatedNetworkDelayMs = 900
@@ -18,13 +18,18 @@ export function AppContextProvider({
       globalThis.setTimeout(resolve, simulatedNetworkDelayMs)
     })
 
-    void password
+    if (
+      email.trim().toLowerCase() !== demoSignInCredentials.email.toLowerCase() ||
+      password !== demoSignInCredentials.password
+    ) {
+      throw new Error('invalid-credentials')
+    }
 
     setSession({
       ...demoSession,
       user: {
         ...demoSession.user,
-        email,
+        email: email.trim(),
       },
     })
   }, [])
@@ -33,12 +38,15 @@ export function AppContextProvider({
     setSession(null)
   }, [])
 
-  const value = useMemo(() => ({
-    ...appConfig,
-    session,
-    signIn,
-    signOut,
-  }), [session, signIn, signOut])
+  const value = useMemo(
+    () => ({
+      ...appConfig,
+      session,
+      signIn,
+      signOut,
+    }),
+    [session, signIn, signOut],
+  )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
