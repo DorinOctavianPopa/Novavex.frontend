@@ -199,9 +199,19 @@
 }
 
 .authentication-form__meta a:hover,
+.authentication-form__meta a:focus-visible,
 .authentication-card__signup a:hover,
-.authentication-card__footer a:hover {
+.authentication-card__signup a:focus-visible,
+.authentication-card__footer a:hover,
+.authentication-card__footer a:focus-visible {
   text-decoration: underline;
+}
+
+.authentication-form__meta a:focus-visible,
+.authentication-card__signup a:focus-visible,
+.authentication-card__footer a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0.2rem;
 }
 
 .authentication-form__submit {

@@ -4,6 +4,7 @@ import { demoSignInCredentials } from '@/config/appConfig'
 import { useAppContext } from '@/context'
 import { SignInError } from '@/types'
 import type { SignInRequest } from '@/types'
+import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 
 import './AuthenticationPage.css'
@@ -36,7 +37,7 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-function validateForm(email: string, password: string, t: (key: string) => string): FormErrors {
+function validateForm(email: string, password: string, t: TFunction): FormErrors {
   const errors: FormErrors = {}
 
   if (!email.trim()) {
