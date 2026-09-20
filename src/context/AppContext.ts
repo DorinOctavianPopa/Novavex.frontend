@@ -12,7 +12,7 @@ export const unauthenticatedSession = {
 export const appContextValue: AppContextValue = {
   ...appConfig,
   session: unauthenticatedSession,
-  signIn: () => undefined,
+  signIn: () => false,
   signOut: () => undefined,
 };
 

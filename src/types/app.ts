@@ -33,6 +33,6 @@ export interface AppConfig {
 
 export interface AppContextValue extends AppConfig {
   readonly session: AuthSession;
-  readonly signIn: (email: string, password: string) => void;
+  readonly signIn: (email: string, password: string) => boolean;
   readonly signOut: () => void;
 }

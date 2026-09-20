@@ -12,14 +12,21 @@ export function AppContextProvider({
   const [session, setSession] = useState<AuthSession>(appContextValue.session);
 
   function signIn(email: string, password: string) {
-    if (!email.trim() || !password) {
-      return;
+    const trimmedEmail = email.trim().toLowerCase();
+    const expectedEmail = demoSession.user.email.toLowerCase();
+    const isValidCredentials =
+      trimmedEmail === expectedEmail && password.length > 0;
+
+    if (!isValidCredentials) {
+      return false;
     }
 
     setSession({
       ...demoSession,
-      user: { ...demoSession.user, email: email.trim() },
+      user: { ...demoSession.user, email: trimmedEmail },
     });
+
+    return true;
   }
 
   function signOut() {
