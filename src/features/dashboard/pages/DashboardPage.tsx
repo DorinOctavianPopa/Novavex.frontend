@@ -31,6 +31,10 @@ export function DashboardPage() {
   const heroTags = t('dashboard.hero.tags', { returnObjects: true }) as string[]
   const rules = t('dashboard.rules.items', { returnObjects: true }) as string[]
 
+  if (!session) {
+    return null
+  }
+
   const canManageInventory = isAuthorized(session, inventoryWritePolicy)
 
   return (
