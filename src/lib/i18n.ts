@@ -252,6 +252,7 @@ void i18n.use(initReactI18next).init({
   lng: getInitialLanguage(),
   fallbackLng: 'en',
   supportedLngs: supportedLanguages,
+  compatibilityJSON: 'v4',
   interpolation: {
     escapeValue: false,
   },

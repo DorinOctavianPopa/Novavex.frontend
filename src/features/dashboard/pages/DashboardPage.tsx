@@ -25,6 +25,9 @@ export function DashboardPage() {
   const { session, security } = useAppContext()
   const { i18n, t } = useTranslation()
   const modules = useFeatureModules()
+  const activeLanguage = (i18n.resolvedLanguage ?? i18n.language).toLowerCase().startsWith('ro')
+    ? 'ro'
+    : 'en'
   const heroTags = t('dashboard.hero.tags', { returnObjects: true }) as string[]
   const rules = t('dashboard.rules.items', { returnObjects: true }) as string[]
 
@@ -38,7 +41,7 @@ export function DashboardPage() {
           <label className="language-switcher">
             <span>{t('language.label')}</span>
             <select
-              value={i18n.resolvedLanguage ?? i18n.language}
+              value={activeLanguage}
               onChange={(event) => {
                 void i18n.changeLanguage(event.target.value)
               }}
