@@ -136,7 +136,7 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
           </div>
           <div className="authentication-shell__copy">
             <h1>{name}</h1>
-            <p>{t('auth.signIn.subtitle', { defaultValue: summary })}</p>
+            <p>{t('auth.signIn.subtitle', { summary })}</p>
           </div>
           <ul className="authentication-highlights">
             <li>{t('auth.signIn.highlights.security')}</li>
@@ -170,7 +170,7 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
                   markTouched('email')
                 }}
                 aria-invalid={touchedFields.email && Boolean(errors.email)}
-                aria-describedby={errors.email ? `${emailId}-error` : undefined}
+                aria-describedby={touchedFields.email && errors.email ? `${emailId}-error` : undefined}
                 disabled={isSubmitting}
                 placeholder={t('auth.signIn.placeholders.email')}
               />
@@ -197,7 +197,7 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
                     markTouched('password')
                   }}
                   aria-invalid={touchedFields.password && Boolean(errors.password)}
-                  aria-describedby={errors.password ? `${passwordId}-error` : undefined}
+                  aria-describedby={touchedFields.password && errors.password ? `${passwordId}-error` : undefined}
                   disabled={isSubmitting}
                   placeholder={t('auth.signIn.placeholders.password')}
                 />

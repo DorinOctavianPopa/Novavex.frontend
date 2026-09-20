@@ -43,7 +43,7 @@ const resources = {
         signIn: {
           eyebrow: 'Enterprise sign in',
           title: 'Welcome back',
-          subtitle: 'Secure access for your Novavex workspace, operations, and ERP modules.',
+          subtitle: '{{summary}} Secure access for your workspace, operations, and ERP modules.',
           description: 'Use your work email to continue to the operations dashboard.',
           hint: 'Preview access: {{email}} / {{password}}',
           fields: {
@@ -198,7 +198,7 @@ const resources = {
         signIn: {
           eyebrow: 'Autentificare enterprise',
           title: 'Bine ai revenit',
-          subtitle: 'Acces securizat la workspace-ul Novavex, operațiuni și modulele ERP.',
+          subtitle: '{{summary}} Acces securizat la workspace-ul tău, operațiuni și modulele ERP.',
           description: 'Folosește emailul de serviciu pentru a continua către dashboard-ul operațional.',
           hint: 'Acces preview: {{email}} / {{password}}',
           fields: {
