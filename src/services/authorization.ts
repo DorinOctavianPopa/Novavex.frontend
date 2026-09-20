@@ -26,8 +26,8 @@ function matchesAttributes(session: AuthSession, policy: AccessPolicy) {
   )
 }
 
-export function isAuthorized(session: AuthSession, policy: AccessPolicy) {
-  if (!session.isAuthenticated) {
+export function isAuthorized(session: AuthSession | null, policy: AccessPolicy) {
+  if (!session?.isAuthenticated) {
     return false
   }
 

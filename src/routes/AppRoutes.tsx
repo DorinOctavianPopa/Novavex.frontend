@@ -1,4 +1,5 @@
 import { useAppContext } from '@/context'
+import { AuthenticationPage } from '@/features/authentication'
 import { DashboardPage } from '@/features/dashboard'
 import { isAuthorized } from '@/services'
 import { useTranslation } from 'react-i18next'
@@ -9,8 +10,12 @@ const dashboardPolicy = {
 }
 
 export function AppRoutes() {
-  const { session } = useAppContext()
+  const { session, signIn } = useAppContext()
   const { t } = useTranslation()
+
+  if (!session?.isAuthenticated) {
+    return <AuthenticationPage onAuthenticate={signIn} />
+  }
 
   if (!isAuthorized(session, dashboardPolicy)) {
     return (

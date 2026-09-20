@@ -40,6 +40,49 @@ const resources = {
       auth: {
         accessDenied: 'Access denied',
         noPermission: 'You do not have permission to view this area.',
+        signIn: {
+          eyebrow: 'Enterprise sign in',
+          title: 'Welcome back',
+          subtitle: 'Secure access for your Novavex workspace, operations, and ERP modules.',
+          description: 'Use your work email to continue to the operations dashboard.',
+          fields: {
+            email: 'Work email',
+            password: 'Password',
+          },
+          placeholders: {
+            email: 'name@company.com',
+            password: 'Enter your password',
+          },
+          actions: {
+            rememberMe: 'Remember me',
+            forgotPassword: 'Forgot password?',
+            createAccount: 'Create account',
+            showPassword: 'Show',
+            hidePassword: 'Hide',
+            signIn: 'Sign in',
+            signingIn: 'Signing in…',
+          },
+          signUpPrompt: 'Need access for a new team member?',
+          footer: {
+            support: 'Support',
+            privacy: 'Privacy',
+            terms: 'Terms',
+          },
+          highlights: {
+            security: 'Protected by short-lived access tokens and secure refresh cookies.',
+            access: 'Role and attribute-based access keeps sensitive ERP modules restricted.',
+            support: 'Need help signing in? Support resources stay one click away.',
+          },
+          validation: {
+            emailRequired: 'Enter the email address associated with your workspace.',
+            emailInvalid: 'Enter a valid work email address.',
+            passwordRequired: 'Enter your password to continue.',
+            passwordLength: 'Use at least 8 characters for your password.',
+          },
+          errors: {
+            generic: 'We could not sign you in right now. Please try again.',
+          },
+        },
       },
       common: {
         minutes: 'min',
@@ -150,6 +193,49 @@ const resources = {
       auth: {
         accessDenied: 'Acces refuzat',
         noPermission: 'Nu ai permisiunea să vizualizezi această zonă.',
+        signIn: {
+          eyebrow: 'Autentificare enterprise',
+          title: 'Bine ai revenit',
+          subtitle: 'Acces securizat la workspace-ul Novavex, operațiuni și modulele ERP.',
+          description: 'Folosește emailul de serviciu pentru a continua către dashboard-ul operațional.',
+          fields: {
+            email: 'Email de serviciu',
+            password: 'Parolă',
+          },
+          placeholders: {
+            email: 'nume@companie.com',
+            password: 'Introdu parola',
+          },
+          actions: {
+            rememberMe: 'Ține-mă minte',
+            forgotPassword: 'Ai uitat parola?',
+            createAccount: 'Creează cont',
+            showPassword: 'Arată',
+            hidePassword: 'Ascunde',
+            signIn: 'Autentificare',
+            signingIn: 'Se autentifică…',
+          },
+          signUpPrompt: 'Ai nevoie de acces pentru un coleg nou?',
+          footer: {
+            support: 'Suport',
+            privacy: 'Confidențialitate',
+            terms: 'Termeni',
+          },
+          highlights: {
+            security: 'Protejat prin tokenuri de acces cu durată scurtă și cookie-uri securizate de refresh.',
+            access: 'Accesul bazat pe roluri și atribute limitează modulele ERP sensibile.',
+            support: 'Ai nevoie de ajutor la autentificare? Resursele de suport sunt la un click distanță.',
+          },
+          validation: {
+            emailRequired: 'Introdu adresa de email asociată workspace-ului tău.',
+            emailInvalid: 'Introdu o adresă de email de serviciu validă.',
+            passwordRequired: 'Introdu parola pentru a continua.',
+            passwordLength: 'Folosește cel puțin 8 caractere pentru parolă.',
+          },
+          errors: {
+            generic: 'Autentificarea nu a reușit momentan. Încearcă din nou.',
+          },
+        },
       },
       common: {
         minutes: 'min',

@@ -31,6 +31,12 @@ export interface AppConfig {
   readonly security: SecurityConfig
 }
 
+export interface SignInRequest {
+  readonly email: string
+}
+
 export interface AppContextValue extends AppConfig {
-  readonly session: AuthSession
+  readonly session: AuthSession | null
+  readonly signIn: (credentials: SignInRequest) => Promise<void>
+  readonly signOut: () => void
 }
