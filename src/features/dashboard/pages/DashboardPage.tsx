@@ -142,8 +142,12 @@ export function DashboardPage() {
           <ul className="module-list">
             {[dashboardModule, financialModule, inventoryModule, crmModule].map((module) => (
               <li key={module.id}>
-                <strong>{t(`modules.${module.id}.name`)}</strong>
-                <span>{t(`modules.${module.id}.description`)}</span>
+                <strong>{t(`modules.${module.id}.name`, { defaultValue: module.name })}</strong>
+                <span>
+                  {t(`modules.${module.id}.description`, {
+                    defaultValue: module.description,
+                  })}
+                </span>
               </li>
             ))}
           </ul>

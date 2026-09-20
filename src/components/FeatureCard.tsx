@@ -7,19 +7,23 @@ interface FeatureCardProps {
 
 export function FeatureCard({ module }: FeatureCardProps) {
   const { t } = useTranslation()
+  const moduleName = t(`modules.${module.id}.name`, { defaultValue: module.name })
+  const moduleDescription = t(`modules.${module.id}.description`, {
+    defaultValue: module.description,
+  })
 
   return (
     <article className="card">
       <div className="card__header">
         <div>
           <p className="eyebrow">{module.path}</p>
-          <h3>{t(`modules.${module.id}.name`)}</h3>
+          <h3>{moduleName}</h3>
         </div>
         <span className={`status status--${module.status}`}>
           {t(`status.${module.status}`)}
         </span>
       </div>
-      <p>{t(`modules.${module.id}.description`)}</p>
+      <p>{moduleDescription}</p>
     </article>
   )
 }

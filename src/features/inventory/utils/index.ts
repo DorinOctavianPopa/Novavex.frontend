@@ -1,8 +1,5 @@
-export function formatStockHealth(
-  lowStockItems: number,
-  translate: (key: string, options?: Record<string, number>) => string,
-) {
+export function getStockHealthMessage(lowStockItems: number) {
   return lowStockItems === 0
-    ? translate('dashboard.inventory.healthyStock')
-    : translate('dashboard.inventory.replenishStock', { count: lowStockItems })
+    ? { key: 'dashboard.inventory.healthyStock' as const }
+    : { key: 'dashboard.inventory.replenishStock' as const, count: lowStockItems }
 }

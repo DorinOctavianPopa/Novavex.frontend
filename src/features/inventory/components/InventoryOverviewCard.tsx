@@ -1,5 +1,5 @@
 import type { InventorySummary } from '@/features/inventory/types'
-import { formatStockHealth } from '@/features/inventory/utils'
+import { getStockHealthMessage } from '@/features/inventory/utils'
 import { useTranslation } from 'react-i18next'
 
 interface InventoryOverviewCardProps {
@@ -8,6 +8,7 @@ interface InventoryOverviewCardProps {
 
 export function InventoryOverviewCard({ summary }: InventoryOverviewCardProps) {
   const { t } = useTranslation()
+  const stockHealthMessage = getStockHealthMessage(summary.lowStockItems)
 
   return (
     <div className="inventory-card">
@@ -29,7 +30,7 @@ export function InventoryOverviewCard({ summary }: InventoryOverviewCardProps) {
           <dd>{summary.warehouseCount}</dd>
         </div>
       </dl>
-      <p>{formatStockHealth(summary.lowStockItems, t)}</p>
+      <p>{t(stockHealthMessage.key, stockHealthMessage)}</p>
     </div>
   )
 }
