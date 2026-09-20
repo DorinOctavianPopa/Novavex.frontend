@@ -1,5 +1,5 @@
 import { FeatureCard } from '@/components'
-import { appConfig, directoryBlueprint } from '@/config/appConfig'
+import { directoryBlueprint } from '@/config/appConfig'
 import { useAppContext } from '@/context'
 import { crmModule } from '@/features/crm'
 import { dashboardModule } from '@/features/dashboard/pages/module'
@@ -8,6 +8,7 @@ import { InventoryDashboardPage, inventoryModule } from '@/features/inventory'
 import { useFeatureModules } from '@/hooks'
 import { isAuthorized } from '@/services'
 import { formatDirectoryName } from '@/utils'
+import { useTranslation } from 'react-i18next'
 
 import './DashboardPage.css'
 
@@ -21,59 +22,79 @@ const inventoryWritePolicy = {
 }
 
 export function DashboardPage() {
-  const { summary, session, security } = useAppContext()
+  const { session, security } = useAppContext()
+  const { i18n, t } = useTranslation()
   const modules = useFeatureModules()
+  const heroTags = t('dashboard.hero.tags', { returnObjects: true }) as string[]
+  const rules = t('dashboard.rules.items', { returnObjects: true }) as string[]
 
   const canManageInventory = isAuthorized(session, inventoryWritePolicy)
 
   return (
     <main className="dashboard-page">
       <section className="hero-panel">
-        <p className="eyebrow">Basic structure</p>
-        <h1>{appConfig.name}</h1>
-        <p className="hero-panel__summary">{summary}</p>
+        <div className="hero-panel__top">
+          <p className="eyebrow">{t('dashboard.hero.eyebrow')}</p>
+          <label className="language-switcher">
+            <span>{t('language.label')}</span>
+            <select
+              value={i18n.resolvedLanguage ?? i18n.language}
+              onChange={(event) => {
+                void i18n.changeLanguage(event.target.value)
+              }}
+            >
+              <option value="en">{t('language.options.en')}</option>
+              <option value="ro">{t('language.options.ro')}</option>
+            </select>
+          </label>
+        </div>
+        <h1>{t('app.name')}</h1>
+        <p className="hero-panel__summary">{t('app.summary')}</p>
         <div className="hero-panel__tags">
-          <span>Feature-driven modules</span>
-          <span>Bulletproof React principles</span>
-          <span>Strict TypeScript + path aliases</span>
+          {heroTags.map((tag) => (
+            <span key={tag}>{tag}</span>
+          ))}
         </div>
       </section>
 
       <section className="content-grid">
         <article className="panel panel--full">
           <div className="panel__header">
-            <h2>Enterprise security baseline</h2>
+            <h2>{t('dashboard.security.title')}</h2>
             <p>
-              Auth provider: <strong>{security.authentication.provider}</strong> · Access token TTL:{' '}
-              <strong>{security.authentication.accessTokenTtlMinutes} min</strong> · Refresh token:{' '}
-              <strong>{security.authentication.refreshTokenStorage}</strong>
+              {t('dashboard.security.authProvider')} <strong>{security.authentication.provider}</strong> ·{' '}
+              {t('dashboard.security.accessTokenTtl')} <strong>{security.authentication.accessTokenTtlMinutes} {t('common.minutes')}</strong> ·{' '}
+              {t('dashboard.security.refreshToken')} <strong>{security.authentication.refreshTokenStorage}</strong>
             </p>
           </div>
           <ul className="rules-list">
             <li>
-              Signed in as <code>{session.user.email}</code> with role(s){' '}
-              <code>{session.user.roles.join(', ')}</code>
+              {t('dashboard.security.signedInAs')} <code>{session.user.email}</code>{' '}
+              {t('dashboard.security.withRoles')} <code>{session.user.roles.join(', ')}</code>
             </li>
             <li>
-              Authorization model: <code>{security.authorization.model}</code>
+              {t('dashboard.security.authorizationModel')} <code>{security.authorization.model}</code>
             </li>
             <li>
-              Inventory write permission:{' '}
-              <strong>{canManageInventory ? 'granted' : 'denied'}</strong> (RBAC + ABAC)
+              {t('dashboard.security.inventoryWritePermission')}{' '}
+              <strong>
+                {canManageInventory ? t('common.permissionGranted') : t('common.permissionDenied')}
+              </strong>{' '}
+              {t('dashboard.security.rbacAbac')}
             </li>
           </ul>
         </article>
 
         <article className="panel">
           <div className="panel__header">
-            <h2>Recommended src layout</h2>
-            <p>Each directory now has a dedicated home in the codebase.</p>
+            <h2>{t('dashboard.layout.title')}</h2>
+            <p>{t('dashboard.layout.description')}</p>
           </div>
           <div className="directory-list">
             {directoryBlueprint.map((node) => (
               <div key={node.name} className="directory-list__item">
                 <code>{formatDirectoryName(node.name)}</code>
-                <p>{node.description}</p>
+                <p>{t(`directory.${node.name.replace('/', '')}`)}</p>
               </div>
             ))}
           </div>
@@ -81,11 +102,8 @@ export function DashboardPage() {
 
         <article className="panel">
           <div className="panel__header">
-            <h2>ERP feature modules</h2>
-            <p>
-              Each domain is treated as a mini application with a small public contract
-              exposed through its barrel export.
-            </p>
+            <h2>{t('dashboard.featureModules.title')}</h2>
+            <p>{t('dashboard.featureModules.description')}</p>
           </div>
           <div className="card-grid">
             {modules.map((module) => (
@@ -96,37 +114,33 @@ export function DashboardPage() {
 
         <article className="panel panel--full">
           <div className="panel__header">
-            <h2>Inventory feature anatomy</h2>
-            <p>
-              The inventory module is the reference implementation for a self-contained
-              feature.
-            </p>
+            <h2>{t('dashboard.inventory.title')}</h2>
+            <p>{t('dashboard.inventory.description')}</p>
           </div>
           <InventoryDashboardPage />
         </article>
 
         <article className="panel">
           <div className="panel__header">
-            <h2>Golden rules</h2>
+            <h2>{t('dashboard.rules.title')}</h2>
           </div>
           <ul className="rules-list">
-            <li>Use <code>@/</code> imports instead of fragile relative paths.</li>
-            <li>Keep business logic inside hooks, APIs, and utilities instead of JSX.</li>
-            <li>Export only the public API of each feature through its barrel file.</li>
-            <li>Reserve shared state for providers and cross-feature concerns.</li>
+            {rules.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
           </ul>
         </article>
 
         <article className="panel">
           <div className="panel__header">
-            <h2>Module snapshot</h2>
-            <p>Representative ERP domains available for extension.</p>
+            <h2>{t('dashboard.snapshot.title')}</h2>
+            <p>{t('dashboard.snapshot.description')}</p>
           </div>
           <ul className="module-list">
             {[dashboardModule, financialModule, inventoryModule, crmModule].map((module) => (
               <li key={module.id}>
-                <strong>{module.name}</strong>
-                <span>{module.description}</span>
+                <strong>{t(`modules.${module.id}.name`)}</strong>
+                <span>{t(`modules.${module.id}.description`)}</span>
               </li>
             ))}
           </ul>
