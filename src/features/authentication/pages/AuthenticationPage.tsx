@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 
 import { demoSignInCredentials } from '@/config/appConfig'
 import { useAppContext } from '@/context'
+import { SignInError } from '@/types'
 import type { SignInRequest } from '@/types'
 import { useTranslation } from 'react-i18next'
 
@@ -97,7 +98,7 @@ export function AuthenticationPage({ onAuthenticate }: Readonly<AuthenticationPa
         }
       }
     } catch (error) {
-      if (error instanceof Error && error.message === 'invalid-credentials') {
+      if (error instanceof SignInError && error.code === 'invalid-credentials') {
         setSubmitError(t('auth.signIn.errors.invalidCredentials'))
       } else {
         setSubmitError(t('auth.signIn.errors.generic'))

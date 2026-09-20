@@ -40,6 +40,18 @@ export interface AppConfig {
   readonly supportLinks: SupportLinks
 }
 
+export type SignInErrorCode = 'invalid-credentials'
+
+export class SignInError extends Error {
+  readonly code: SignInErrorCode
+
+  constructor(code: SignInErrorCode) {
+    super(code)
+    this.name = 'SignInError'
+    this.code = code
+  }
+}
+
 export interface SignInRequest {
   readonly email: string
   readonly password: string

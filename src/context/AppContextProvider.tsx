@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { AppContext } from '@/context/AppContext'
 import { appConfig, demoSession, demoSignInCredentials } from '@/config/appConfig'
+import { SignInError } from '@/types'
 import type { AuthSession, SignInRequest } from '@/types'
 
 const simulatedNetworkDelayMs = 900
@@ -22,7 +23,7 @@ export function AppContextProvider({
       email.trim().toLowerCase() !== demoSignInCredentials.email.toLowerCase() ||
       password !== demoSignInCredentials.password
     ) {
-      throw new Error('invalid-credentials')
+      throw new SignInError('invalid-credentials')
     }
 
     setSession({
