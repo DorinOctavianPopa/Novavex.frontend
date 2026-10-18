@@ -1,64 +1,83 @@
-import type { AuthSession, AuthRole } from '@/types/auth'
+import type { AuthSession, AuthRole } from "@/types/auth";
 
 export interface FeatureModule {
-  readonly id: string
-  readonly name: string
-  readonly path: string
-  readonly description: string
-  readonly status: 'ready' | 'planned'
+  readonly id: string;
+  readonly name: string;
+  readonly path: string;
+  readonly description: string;
+  readonly status: "ready" | "planned";
 }
 
 export interface DirectoryNode {
-  readonly name: string
-  readonly description: string
+  readonly name: string;
+  readonly description: string;
 }
 
 export interface SupportLinks {
-  readonly forgotPassword: string
-  readonly createAccount: string
-  readonly support: string
-  readonly privacy: string
-  readonly terms: string
+  readonly forgotPassword: string;
+  readonly createAccount: string;
+  readonly support: string;
+  readonly privacy: string;
+  readonly terms: string;
 }
 
 export interface SecurityConfig {
   readonly authentication: {
-    readonly provider: 'oidc-oauth2'
-    readonly accessTokenTtlMinutes: number
-    readonly refreshTokenStorage: 'httpOnly-cookie'
-  }
+    readonly provider: "oidc-oauth2";
+    readonly accessTokenTtlMinutes: number;
+    readonly refreshTokenStorage: "httpOnly-cookie";
+  };
   readonly authorization: {
-    readonly model: 'rbac+abac'
-    readonly privilegedRoles: readonly AuthRole[]
-  }
+    readonly model: "rbac+abac";
+    readonly privilegedRoles: readonly AuthRole[];
+  };
 }
 
 export interface AppConfig {
-  readonly name: string
-  readonly summary: string
-  readonly security: SecurityConfig
-  readonly supportLinks: SupportLinks
+  readonly name: string;
+  readonly summary: string;
+  readonly security: SecurityConfig;
+  readonly supportLinks: SupportLinks;
 }
 
-export type SignInErrorCode = 'invalid-credentials'
+export type SignInErrorCode = "invalid-credentials";
 
 export class SignInError extends Error {
-  readonly code: SignInErrorCode
+  readonly code: SignInErrorCode;
 
   constructor(code: SignInErrorCode) {
-    super(code)
-    this.name = 'SignInError'
-    this.code = code
+    super(code);
+    this.name = "SignInError";
+    this.code = code;
   }
 }
 
 export interface SignInRequest {
-  readonly email: string
-  readonly password: string
+  readonly email: string;
+  readonly password: string;
+}
+
+export type SignUpErrorCode = "email-in-use";
+
+export class SignUpError extends Error {
+  readonly code: SignUpErrorCode;
+
+  constructor(code: SignUpErrorCode) {
+    super(code);
+    this.name = "SignUpError";
+    this.code = code;
+  }
+}
+
+export interface SignUpRequest {
+  readonly fullName: string;
+  readonly email: string;
+  readonly password: string;
 }
 
 export interface AppContextValue extends AppConfig {
-  readonly session: AuthSession | null
-  readonly signIn: (credentials: SignInRequest) => Promise<void>
-  readonly signOut: () => void
+  readonly session: AuthSession | null;
+  readonly signIn: (credentials: SignInRequest) => Promise<void>;
+  readonly signUp: (request: SignUpRequest) => Promise<void>;
+  readonly signOut: () => void;
 }

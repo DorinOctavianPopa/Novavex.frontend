@@ -86,6 +86,14 @@
   max-width: 32rem;
 }
 
+.authentication-shell__logo {
+  width: 8rem;
+  height: 8rem;
+  object-fit: contain;
+  align-self: center;
+  justify-self: center;
+}
+
 .authentication-shell__copy p,
 .authentication-card__header p,
 .authentication-card__signup,
@@ -140,8 +148,13 @@
   color: var(--text-muted);
 }
 
-.authentication-field input[aria-invalid='true'] {
+.authentication-field input[aria-invalid="true"] {
   border-color: #f87171;
+}
+
+.authentication-field__hint {
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 .authentication-password-field {
@@ -193,9 +206,25 @@
 
 .authentication-form__meta a,
 .authentication-card__signup a,
-.authentication-card__footer a {
+.authentication-card__footer a,
+.authentication-link-button {
   color: var(--accent);
   text-decoration: none;
+}
+
+.authentication-link-button {
+  display: inline;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.authentication-card__success {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
 }
 
 .authentication-form__meta a:hover,
