@@ -1,4 +1,5 @@
 import type { FeatureModule } from '@/types'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 interface FeatureCardProps {
@@ -24,6 +25,11 @@ export function FeatureCard({ module }: FeatureCardProps) {
         </span>
       </div>
       <p>{moduleDescription}</p>
+      {module.route ? (
+        <Link className="card__run-link" to={module.route}>
+          {t('featureCard.runModule')}
+        </Link>
+      ) : null}
     </article>
   )
 }

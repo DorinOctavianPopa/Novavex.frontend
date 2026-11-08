@@ -168,6 +168,16 @@ const resources = {
         ready: "Ready",
         planned: "Planned",
       },
+      featureCard: {
+        runModule: "Run module",
+      },
+      inventoryPage: {
+        eyebrow: "src/features/inventory",
+        title: "Inventory module",
+        description:
+          "Live preview of the self-contained inventory feature running on its own route.",
+        backToDashboard: "Back to dashboard",
+      },
       directory: {
         assets: "Global static images, icons and other shared files.",
         components: "Reusable UI building blocks shared across modules.",
@@ -401,6 +411,16 @@ const resources = {
       status: {
         ready: "Pregătit",
         planned: "Planificat",
+      },
+      featureCard: {
+        runModule: "Rulează modulul",
+      },
+      inventoryPage: {
+        eyebrow: "src/features/inventory",
+        title: "Modul de inventar",
+        description:
+          "Previzualizare live a funcționalității de inventar, care rulează pe propria rută.",
+        backToDashboard: "Înapoi la tablou de bord",
       },
       directory: {
         assets: "Imagini statice globale, iconițe și alte fișiere partajate.",
