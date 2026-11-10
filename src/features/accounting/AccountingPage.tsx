@@ -94,28 +94,30 @@ export function AccountingPage() {
   }
 
   const activity = (code: string, start: string, end: string) => entries.filter((item) => item.date >= start && item.date <= end).flatMap((item) => item.lines.filter((line) => line.account === code))
-  const periodEntries = entries.filter((item) => item.date >= from && item.date <= to).sort((a, b) => a.date.localeCompare(b.date))
   const availableReport = ['Trial Balance', 'General Journal', 'Account Ledger', 'General Ledger', 'Cost Center Report'].includes(report)
   let headings: string[] = []
   let rows: string[][] = []
-  if (report === 'Trial Balance') {
-    headings = ['Account', 'Name', 'Currency', 'Opening (D-C)', 'Debit', 'Credit', 'Closing (D-C)']
-    rows = accounts.map((item) => {
-      const openingLines = entries.filter((entryItem) => entryItem.date < from).flatMap((entryItem) => entryItem.lines.filter((line) => line.account === item.code))
-      const opening = total(openingLines, 'Debit') - total(openingLines, 'Credit')
-      const lines = activity(item.code, from, to)
-      return [item.code, item.name, item.currency, money(opening), money(total(lines, 'Debit')), money(total(lines, 'Credit')), money(opening + total(lines, 'Debit') - total(lines, 'Credit'))]
-    })
-  } else if (report === 'General Ledger') {
-    headings = ['Month', 'Account', 'Name', 'Currency', 'Debit', 'Credit']
-    const months = [...new Set(periodEntries.map((item) => item.date.slice(0, 7)))].sort()
-    rows = months.flatMap((month) => accounts.map((item) => {
-      const lines = periodEntries.filter((entryItem) => entryItem.date.startsWith(month)).flatMap((entryItem) => entryItem.lines.filter((line) => line.account === item.code))
-      return [month, item.code, item.name, item.currency, money(total(lines, 'Debit')), money(total(lines, 'Credit'))]
-    }))
-  } else if (report === 'General Journal' || report === 'Account Ledger' || report === 'Cost Center Report') {
-    headings = ['Date', 'Document', 'Description', 'Account', 'Currency', 'Cost center', 'Debit', 'Credit']
-    rows = periodEntries.flatMap((item) => item.lines.filter((line) => report !== 'Account Ledger' || line.account === reportAccount).filter((line) => report !== 'Cost Center Report' || line.costCenter.trim()).map((line) => [item.date, item.number, item.description, line.account, accounts.find((accountItem) => accountItem.code === line.account)?.currency ?? '', line.costCenter, line.side === 'Debit' ? line.amount : '', line.side === 'Credit' ? line.amount : '']))
+  if (tab === 'Reports') {
+    const periodEntries = entries.filter((item) => item.date >= from && item.date <= to).sort((a, b) => a.date.localeCompare(b.date))
+    if (report === 'Trial Balance') {
+      headings = ['Account', 'Name', 'Currency', 'Opening (D-C)', 'Debit', 'Credit', 'Closing (D-C)']
+      rows = accounts.map((item) => {
+        const openingLines = entries.filter((entryItem) => entryItem.date < from).flatMap((entryItem) => entryItem.lines.filter((line) => line.account === item.code))
+        const opening = total(openingLines, 'Debit') - total(openingLines, 'Credit')
+        const lines = activity(item.code, from, to)
+        return [item.code, item.name, item.currency, money(opening), money(total(lines, 'Debit')), money(total(lines, 'Credit')), money(opening + total(lines, 'Debit') - total(lines, 'Credit'))]
+      })
+    } else if (report === 'General Ledger') {
+      headings = ['Month', 'Account', 'Name', 'Currency', 'Debit', 'Credit']
+      const months = [...new Set(periodEntries.map((item) => item.date.slice(0, 7)))].sort()
+      rows = months.flatMap((month) => accounts.map((item) => {
+        const lines = periodEntries.filter((entryItem) => entryItem.date.startsWith(month)).flatMap((entryItem) => entryItem.lines.filter((line) => line.account === item.code))
+        return [month, item.code, item.name, item.currency, money(total(lines, 'Debit')), money(total(lines, 'Credit'))]
+      }))
+    } else if (report === 'General Journal' || report === 'Account Ledger' || report === 'Cost Center Report') {
+      headings = ['Date', 'Document', 'Description', 'Account', 'Currency', 'Cost center', 'Debit', 'Credit']
+      rows = periodEntries.flatMap((item) => item.lines.filter((line) => report !== 'Account Ledger' || line.account === reportAccount).filter((line) => report !== 'Cost Center Report' || line.costCenter.trim()).map((line) => [item.date, item.number, item.description, line.account, accounts.find((accountItem) => accountItem.code === line.account)?.currency ?? '', line.costCenter, line.side === 'Debit' ? line.amount : '', line.side === 'Credit' ? line.amount : '']))
+    }
   }
   function exportCsv() {
     const numericColumns = headings.map((heading) => ['Opening (D-C)', 'Debit', 'Credit', 'Closing (D-C)'].includes(heading))
@@ -154,7 +156,7 @@ export function AccountingPage() {
       <h3>Saved entries</h3><p>To reverse an entry, first choose the reversal accounting date above.</p><div className="accounting__table"><table><thead><tr><th>Date</th><th>Document</th><th>Type</th><th>Description</th><th>Debit / Credit</th><th></th></tr></thead><tbody>{entries.map((item) => <tr key={item.number}><td>{item.date}</td><td>{item.number}</td><td>{item.type}</td><td>{item.description}</td><td>{money(total(item.lines, 'Debit'))} / {money(total(item.lines, 'Credit'))}</td><td><button type="button" onClick={() => reverse(item)}>Reverse</button></td></tr>)}</tbody></table></div>
     </section>}
     {tab === 'Settings' && <section><h2>Application settings</h2><p>Role: {admin ? 'Administrator' : senior ? 'Senior accountant' : 'Junior accountant'}. Administrators configure settings; senior accountants can lock periods; junior accountants enter data.</p>
-      <form className="accounting__form" onSubmit={(e) => { e.preventDefault(); if (!admin) return; if (settingsDraft.rates.trim() && settingsDraft.rates.split(',').some((rate) => !/^\d+(\.\d+)?$/.test(rate.trim()) || Number(rate) > 100)) return setMessage('Enter VAT rates between 0 and 100, separated by commas.'); const next = { ...settingsDraft, year: settingsDraft.year.padStart(4, '0'), month: settingsDraft.month.padStart(2, '0') }; setSettings(next); setSettingsDraft(next); record('Updated accounting settings'); setMessage('Settings saved for this session.') }}>
+      <form className="accounting__form" onSubmit={(e) => { e.preventDefault(); if (!admin) return; if (settingsDraft.rates.trim() && settingsDraft.rates.split(',').some((rate) => !/^\d+(\.\d+)?$/.test(rate.trim()) || Number(rate) > 100)) return setMessage('Enter VAT rates between 0 and 100, separated by commas.'); const next = { ...settingsDraft, year: String(Number(settingsDraft.year)).padStart(4, '0'), month: String(Number(settingsDraft.month)).padStart(2, '0') }; setSettings(next); setSettingsDraft(next); record('Updated accounting settings'); setMessage('Settings saved for this session.') }}>
         {([['registration', 'Company registration number'], ['taxId', 'Tax ID'], ['address', 'Legal address'], ['bank', 'Primary bank accounts'], ['year', 'Fiscal year'], ['month', 'Current month'], ['rates', 'VAT rates (%) separated by commas']] as const).map(([key, label]) => <label key={key}>{label}<input disabled={!admin} value={settingsDraft[key]} type={key === 'year' || key === 'month' ? 'number' : 'text'} min={key === 'year' ? '1' : key === 'month' ? '1' : undefined} max={key === 'year' ? '9999' : key === 'month' ? '12' : undefined} required={key === 'year' || key === 'month'} onChange={(e) => setSettingsDraft({ ...settingsDraft, [key]: e.target.value })} /></label>)}
         {([['retained', 'Retained earnings account'], ['profit', 'Profit & loss account'], ['vat', 'VAT control account']] as const).map(([key, label]) => <label key={key}>{label}<select disabled={!admin} value={settingsDraft[key]} onChange={(e) => setSettingsDraft({ ...settingsDraft, [key]: e.target.value })}><option value="">Select account</option>{accountOptions.map((item) => <option key={item.code} value={item.code}>{item.code} — {item.name}</option>)}</select></label>)}<button disabled={!admin} type="submit">Save settings</button>
       </form>
