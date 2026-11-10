@@ -7,6 +7,7 @@ import {
   CreateAccountPage,
 } from "@/features/authentication";
 import { DashboardPage } from "@/features/dashboard";
+import { AccountingModulePage } from "@/features/financial";
 import { InventoryModulePage } from "@/features/inventory";
 import { AccountingPage } from "@/features/accounting";
 import { isAuthorized } from "@/services";

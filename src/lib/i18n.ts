@@ -178,6 +178,13 @@ const resources = {
           "Live preview of the self-contained inventory feature running on its own route.",
         backToDashboard: "Back to dashboard",
       },
+      accountingPage: {
+        eyebrow: "src/features/financial",
+        title: "Accounting module",
+        description:
+          "Accounting workflows for invoices and ledger operations will be available here.",
+        backToDashboard: "Back to dashboard",
+      },
       directory: {
         assets: "Global static images, icons and other shared files.",
         components: "Reusable UI building blocks shared across modules.",
@@ -200,7 +207,7 @@ const resources = {
             "Entry area that aggregates KPIs, notifications, and global ERP navigation.",
         },
         financial: {
-          name: "Financial",
+          name: "Accounting",
           description:
             "Accounting, invoices, and ledger flows isolated from other domains.",
         },
@@ -422,6 +429,13 @@ const resources = {
           "Previzualizare live a funcționalității de inventar, care rulează pe propria rută.",
         backToDashboard: "Înapoi la tablou de bord",
       },
+      accountingPage: {
+        eyebrow: "src/features/financial",
+        title: "Modul de contabilitate",
+        description:
+          "Fluxurile contabile pentru facturi și operațiuni de registru vor fi disponibile aici.",
+        backToDashboard: "Înapoi la tabloul de bord",
+      },
       directory: {
         assets: "Imagini statice globale, iconițe și alte fișiere partajate.",
         components: "Blocuri UI reutilizabile partajate între module.",
@@ -448,7 +462,7 @@ const resources = {
             "Zonă de intrare care agregă KPI-uri, notificări și navigația globală ERP.",
         },
         financial: {
-          name: "Financiar",
+          name: "Contabilitate",
           description:
             "Fluxuri de contabilitate, facturi și registru izolate de celelalte domenii.",
         },
