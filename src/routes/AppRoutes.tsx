@@ -7,6 +7,7 @@ import {
   CreateAccountPage,
 } from "@/features/authentication";
 import { DashboardPage } from "@/features/dashboard";
+import { AccountingModulePage } from "@/features/financial";
 import { InventoryModulePage } from "@/features/inventory";
 import { isAuthorized } from "@/services";
 import type { AuthSession } from "@/types";
@@ -25,6 +26,11 @@ const dashboardPolicy = {
 const inventoryReadPolicy = {
   anyRoles: ["super_admin", "cto", "inventory_manager"] as const,
   allScopes: ["inventory:read"] as const,
+};
+
+const accountingReadPolicy = {
+  anyRoles: ["super_admin", "cto", "finance_manager"] as const,
+  allScopes: ["financial:read"] as const,
 };
 
 function AccessDeniedView() {
@@ -97,6 +103,14 @@ export function AppRoutes() {
         element={
           <AuthorizedRoute session={session} policy={inventoryReadPolicy}>
             <InventoryModulePage />
+          </AuthorizedRoute>
+        }
+      />
+      <Route
+        path="/accounting"
+        element={
+          <AuthorizedRoute session={session} policy={accountingReadPolicy}>
+            <AccountingModulePage />
           </AuthorizedRoute>
         }
       />

@@ -29,7 +29,12 @@ export const demoSession: AuthSession = {
   accessToken: "demo-access-token",
   accessTokenExpiresAt: "2026-09-18T19:06:00.000Z",
   refreshTokenStorage: "httpOnly-cookie",
-  scopes: ["dashboard:read", "inventory:read", "inventory:write"],
+  scopes: [
+    "dashboard:read",
+    "inventory:read",
+    "inventory:write",
+    "financial:read",
+  ],
   user: {
     id: "usr_demo_001",
     email: "cto@novavex.example",
