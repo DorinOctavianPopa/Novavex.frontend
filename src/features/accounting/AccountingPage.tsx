@@ -60,7 +60,8 @@ export function AccountingPage() {
     const currency = account.currency.trim().toUpperCase()
     if (!/^[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*$/.test(code) || !name || !/^[A-Z]{3}$/.test(currency)) return setMessage('Enter a valid code, name and three-letter currency.')
     if (accounts.some((item) => item.code.toLowerCase() === code.toLowerCase())) return setMessage('Account code already exists.')
-    if (account.parent && (!accounts.some((item) => item.code === account.parent && !item.archived) || !code.toLowerCase().startsWith(`${account.parent.toLowerCase()}.`))) return setMessage('A sub-account code must start with its active parent code followed by a dot.')
+    const parentCode = code.includes('.') ? code.slice(0, code.lastIndexOf('.')) : ''
+    if (parentCode.toLowerCase() !== account.parent.toLowerCase() || (account.parent && !accounts.some((item) => item.code === account.parent && !item.archived))) return setMessage('Select the active immediate parent for a sub-account, or leave parent empty for a root account.')
     setAccounts([...accounts, { ...account, code, name, currency }])
     record(`Created account ${code}`)
     setAccount({ code: '', name: '', type: 'A', currency: 'RON', parent: '', archived: false })
