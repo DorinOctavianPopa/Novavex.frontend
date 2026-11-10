@@ -13,6 +13,7 @@ src/
 ├── features/        # Isolated ERP modules
 │   ├── dashboard/
 │   ├── financial/
+│   ├── accounting/
 │   ├── inventory/
 │   └── crm/
 ├── hooks/           # Reusable hooks
@@ -53,6 +54,12 @@ src/features/inventory/
 ```
 
 Only the public contract is exported from each feature barrel. For example, `src/features/inventory/index.ts` exposes the page component and public types while keeping internals private to the module.
+
+## Accounting preview
+
+The accounting workspace is a frontend-only, in-memory preview. Data, templates, settings, period locks and the session audit log disappear on reload or navigation away. Role checks and locks are UI safeguards only; authentication, authorization, immutable audit history, persistence and period enforcement require a backend. Do not use this preview for real accounting or statutory filing.
+
+Entries must balance in a single currency; foreign exchange conversion is not supported. Reports based on journal activity can be exported as Excel-compatible CSV or printed to PDF. Reports requiring additional source data or fiscal mappings are identified as unavailable rather than presented as statutory reports.
 
 ## TypeScript guardrails
 

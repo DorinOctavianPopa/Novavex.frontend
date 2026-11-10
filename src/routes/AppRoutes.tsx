@@ -9,6 +9,7 @@ import {
 import { DashboardPage } from "@/features/dashboard";
 import { AccountingModulePage } from "@/features/financial";
 import { InventoryModulePage } from "@/features/inventory";
+import { AccountingPage } from "@/features/accounting";
 import { isAuthorized } from "@/services";
 import type { AuthSession } from "@/types";
 import { useTranslation } from "react-i18next";
@@ -18,6 +19,8 @@ const dashboardPolicy = {
     "super_admin",
     "cto",
     "finance_manager",
+    "senior_accountant",
+    "junior_accountant",
     "inventory_manager",
   ] as const,
   allScopes: ["dashboard:read"] as const,
@@ -28,9 +31,8 @@ const inventoryReadPolicy = {
   allScopes: ["inventory:read"] as const,
 };
 
-const accountingReadPolicy = {
-  anyRoles: ["super_admin", "cto", "finance_manager"] as const,
-  allScopes: ["financial:read"] as const,
+const accountingPolicy = {
+  anyRoles: ["super_admin", "cto", "finance_manager", "senior_accountant", "junior_accountant"] as const,
 };
 
 function AccessDeniedView() {
@@ -109,8 +111,8 @@ export function AppRoutes() {
       <Route
         path="/accounting"
         element={
-          <AuthorizedRoute session={session} policy={accountingReadPolicy}>
-            <AccountingModulePage />
+          <AuthorizedRoute session={session} policy={accountingPolicy}>
+            <AccountingPage />
           </AuthorizedRoute>
         }
       />
