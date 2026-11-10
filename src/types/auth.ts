@@ -2,6 +2,8 @@ export type AuthRole =
   | 'super_admin'
   | 'cto'
   | 'finance_manager'
+  | 'senior_accountant'
+  | 'junior_accountant'
   | 'inventory_manager'
   | 'sales_manager'
 
