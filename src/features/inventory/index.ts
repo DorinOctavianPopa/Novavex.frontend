@@ -10,5 +10,6 @@ export const inventoryModule: FeatureModule = {
   path: 'src/features/inventory',
   description: 'Self-contained stock and warehouse workflows with their own API, hooks, and types.',
   status: 'ready',
+  alias: 'INV',
   route: '/inventory',
 }

@@ -1,5 +1,5 @@
-import { FeatureCard } from "@/components";
-import { directoryBlueprint } from "@/config/appConfig";
+import { FeatureCard, Grid } from "@/components";
+import type { GridColumn } from "@/components";
 import { useAppContext } from "@/context";
 import { crmModule } from "@/features/crm";
 import { dashboardModule } from "@/features/dashboard/pages/module";
@@ -7,8 +7,10 @@ import { financialModule } from "@/features/financial";
 import { InventoryDashboardPage, inventoryModule } from "@/features/inventory";
 import { useFeatureModules } from "@/hooks";
 import { isAuthorized } from "@/services";
-import { formatDirectoryName } from "@/utils";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import type { FeatureModule } from "@/types";
 
 import "./DashboardPage.css";
 
@@ -24,7 +26,10 @@ const inventoryWritePolicy = {
 export function DashboardPage() {
   const { session, security } = useAppContext();
   const { i18n, t } = useTranslation();
-  const modules = useFeatureModules();
+  const defaultModules = useFeatureModules();
+  const [modules, setModules] = useState<FeatureModule[]>(() => [
+    ...defaultModules,
+  ]);
   const activeLanguage = (i18n.resolvedLanguage ?? i18n.language)
     .toLowerCase()
     .startsWith("ro")
@@ -34,6 +39,125 @@ export function DashboardPage() {
     returnObjects: true,
   }) as string[];
   const rules = t("dashboard.rules.items", { returnObjects: true }) as string[];
+
+  const featureModuleColumns: ReadonlyArray<GridColumn<FeatureModule>> = [
+    {
+      key: "module",
+      header: t("dashboard.grid.columns.module"),
+      render: (module) => (
+        <div>
+          <strong>{module.name}</strong>
+          <p className="grid-example__description">{module.description}</p>
+        </div>
+      ),
+      renderEditor: (module, onChange) => (
+        <div className="grid-example__inline-editor">
+          <input
+            className="grid__edit-input"
+            aria-label={t("dashboard.grid.actions.fieldName")}
+            value={module.name}
+            onChange={(event) => onChange({ name: event.target.value })}
+          />
+          <textarea
+            className="grid__edit-input"
+            aria-label={t("dashboard.grid.actions.fieldDescription")}
+            rows={2}
+            value={module.description}
+            onChange={(event) => onChange({ description: event.target.value })}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "alias",
+      header: t("dashboard.grid.columns.alias"),
+      align: "center",
+      accessor: "alias",
+      editable: true,
+      render: (module) =>
+        module.alias ? (
+          <span className="grid-example__alias">{module.alias}</span>
+        ) : (
+          <span className="grid-example__muted">
+            {t("dashboard.grid.noRoute")}
+          </span>
+        ),
+    },
+    {
+      key: "path",
+      header: t("dashboard.grid.columns.path"),
+      render: (module) => <code>{module.path}</code>,
+    },
+    {
+      key: "status",
+      header: t("dashboard.grid.columns.status"),
+      align: "center",
+      render: (module) => (
+        <span className={`status status--${module.status}`}>
+          {t(`status.${module.status}`)}
+        </span>
+      ),
+    },
+    {
+      key: "route",
+      header: t("dashboard.grid.columns.route"),
+      align: "center",
+      render: (module) =>
+        module.route ? (
+          <Link to={module.route}>{t("featureCard.runModule")}</Link>
+        ) : (
+          <span className="grid-example__muted">
+            {t("dashboard.grid.noRoute")}
+          </span>
+        ),
+    },
+  ];
+
+  function createModuleId(name: string, existing: ReadonlyArray<FeatureModule>) {
+    const slug =
+      name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "") || `module-${Date.now()}`;
+    if (!existing.some((module) => module.id === slug)) {
+      return slug;
+    }
+    let suffix = 2;
+    while (existing.some((module) => module.id === `${slug}-${suffix}`)) {
+      suffix += 1;
+    }
+    return `${slug}-${suffix}`;
+  }
+
+  function handleAddModule() {
+    const name = t("dashboard.grid.actions.newModuleName");
+    const id = createModuleId(name, modules);
+    const newModule: FeatureModule = {
+      id,
+      name,
+      description: "",
+      path: `src/features/${id}`,
+      status: "planned",
+      alias: name.slice(0, 3).toUpperCase(),
+    };
+    setModules((current) => [...current, newModule]);
+  }
+
+  function handleSaveModule(
+    updatedModule: FeatureModule,
+    originalModule: FeatureModule,
+  ) {
+    setModules((current) =>
+      current.map((item) =>
+        item.id === originalModule.id ? updatedModule : item,
+      ),
+    );
+  }
+
+  function handleDeleteModule(module: FeatureModule) {
+    setModules((current) => current.filter((item) => item.id !== module.id));
+  }
 
   if (!session) {
     return null;
@@ -136,6 +260,30 @@ export function DashboardPage() {
 
         <article className="panel panel--full">
           <div className="panel__header">
+            <h2>{t("dashboard.grid.title")}</h2>
+            <p>{t("dashboard.grid.description")}</p>
+          </div>
+          <Grid<FeatureModule>
+            columns={featureModuleColumns}
+            data={modules}
+            getRowKey={(module) => module.id}
+            onAddRow={handleAddModule}
+            addRowLabel={t("dashboard.grid.actions.add")}
+            onSaveRow={handleSaveModule}
+            editRowLabel={t("dashboard.grid.actions.edit")}
+            saveRowLabel={t("dashboard.grid.actions.save")}
+            cancelEditLabel={t("dashboard.grid.actions.cancelForm")}
+            onDeleteRow={handleDeleteModule}
+            deleteRowLabel={t("dashboard.grid.actions.delete")}
+            actionsHeader={t("dashboard.grid.actions.header")}
+            getDeleteConfirmMessage={(module) =>
+              t("dashboard.grid.actions.confirmDelete", { name: module.name })
+            }
+          />
+        </article>
+
+        <article className="panel panel--full">
+          <div className="panel__header">
             <h2>{t("dashboard.inventory.title")}</h2>
             <p>{t("dashboard.inventory.description")}</p>
           </div>
@@ -152,7 +300,6 @@ export function DashboardPage() {
             ))}
           </ul>
         </article>
-
         <article className="panel">
           <div className="panel__header">
             <h2>{t("dashboard.snapshot.title")}</h2>

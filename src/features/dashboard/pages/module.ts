@@ -6,4 +6,5 @@ export const dashboardModule: FeatureModule = {
   path: 'src/features/dashboard',
   description: 'Entry area that aggregates KPIs, notifications, and global ERP navigation.',
   status: 'ready',
+  alias: 'DSH',
 }

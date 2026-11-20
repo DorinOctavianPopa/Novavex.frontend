@@ -245,6 +245,31 @@ const resources = {
           description:
             "Each domain is treated as a mini application with a small public contract exposed through its barrel export.",
         },
+        grid: {
+          title: "Feature modules (Grid component)",
+          description:
+            "Same module data rendered through the reusable Grid component, driven by a column description array.",
+          columns: {
+            module: "Module",
+            alias: "Alias",
+            path: "Path",
+            status: "Status",
+            route: "Route",
+          },
+          noRoute: "—",
+          actions: {
+            header: "Actions",
+            add: "Add",
+            edit: "Edit",
+            delete: "Delete",
+            save: "Save",
+            cancelForm: "Cancel",
+            fieldName: "Module name",
+            fieldDescription: "Module description",
+            newModuleName: "New module",
+            confirmDelete: 'Delete the "{{name}}" module?',
+          },
+        },
         inventory: {
           title: "Inventory feature anatomy",
           description:
@@ -492,6 +517,31 @@ const resources = {
           title: "Module ERP",
           description:
             "Fiecare domeniu este tratat ca o mini aplicație cu un contract public redus expus prin barrel export.",
+        },
+        grid: {
+          title: "Module (componenta Grid)",
+          description:
+            "Aceleași date despre module afișate prin componenta reutilizabilă Grid, pe baza unui tablou de descriere a coloanelor.",
+          columns: {
+            module: "Modul",
+            alias: "Alias",
+            path: "Cale",
+            status: "Stare",
+            route: "Rută",
+          },
+          noRoute: "—",
+          actions: {
+            header: "Acțiuni",
+            add: "Adaugă",
+            edit: "Editează",
+            delete: "Șterge",
+            save: "Salvează",
+            cancelForm: "Anulează",
+            fieldName: "Nume modul",
+            fieldDescription: "Descriere modul",
+            newModuleName: "Modul nou",
+            confirmDelete: 'Ștergi modulul "{{name}}"?',
+          },
         },
         inventory: {
           title: "Anatomia funcționalității de inventar",

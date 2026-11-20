@@ -6,4 +6,5 @@ export const financialModule: FeatureModule = {
   path: 'src/features/financial',
   description: 'Accounting, invoices, and ledger flows isolated from other domains.',
   status: 'planned',
+  alias: 'FIN',
 }

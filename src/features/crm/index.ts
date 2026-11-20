@@ -6,4 +6,5 @@ export const crmModule: FeatureModule = {
   path: 'src/features/crm',
   description: 'Customer records, pipeline stages, and commercial follow-up workflows.',
   status: 'planned',
+  alias: 'CRM',
 }

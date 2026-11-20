@@ -6,6 +6,8 @@ export interface FeatureModule {
   readonly path: string;
   readonly description: string;
   readonly status: "ready" | "planned";
+  /** Short, uppercase code shown as a compact badge in grid/table views. */
+  readonly alias?: string;
   /** Route to navigate to when the module can be run as a standalone page. */
   readonly route?: string;
 }
