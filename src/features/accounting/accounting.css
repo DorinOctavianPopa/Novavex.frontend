@@ -1,0 +1,48 @@
+.accounting {
+  max-width: 90rem;
+  margin: auto;
+  padding: 2rem 1.5rem 4rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.accounting header, .accounting section {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.accounting header p, .accounting section p {
+  color: var(--text-muted);
+  margin: .5rem 0;
+}
+
+.accounting a { color: var(--accent); }
+.accounting nav, .accounting__actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.accounting nav button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.accounting button, .accounting input, .accounting select {
+  box-sizing: border-box;
+  color: var(--text);
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  border-radius: .4rem;
+  padding: .6rem;
+  font: inherit;
+}
+.accounting button { cursor: pointer; }
+.accounting button:disabled { opacity: .5; cursor: not-allowed; }
+.accounting__form { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin: 1rem 0; }
+.accounting__form label { display: grid; gap: .25rem; flex: 1 1 11rem; }
+.accounting__line { padding: .5rem; border: 1px solid var(--border); border-radius: .5rem; }
+.accounting__table { overflow-x: auto; margin: 1rem 0; }
+.accounting table { border-collapse: collapse; width: 100%; text-align: left; }
+.accounting th, .accounting td { padding: .6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.accounting h3 { margin-top: 1.5rem; }
+.accounting__message { color: var(--text-strong); }
+@media print {
+  .accounting { --text-strong: #000; --text-muted: #000; --border: #777; }
+  .accounting nav, .accounting__actions, .accounting__form, .accounting header a { display: none; }
+  .accounting, .accounting header, .accounting section { color: black; background: white; }
+  .accounting__table { overflow: visible; }
+}
