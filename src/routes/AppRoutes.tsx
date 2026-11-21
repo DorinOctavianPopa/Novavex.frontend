@@ -5,6 +5,8 @@ import { useAppContext } from "@/context";
 import {
   AuthenticationPage,
   CreateAccountPage,
+  PrivacyPage,
+  SupportPage,
 } from "@/features/authentication";
 import { DashboardPage } from "@/features/dashboard";
 import { AccountingModulePage } from "@/features/financial";
@@ -69,29 +71,38 @@ export function AppRoutes() {
   );
 
   if (!session?.isAuthenticated) {
-    if (authView === "create-account") {
-      return (
-        <CreateAccountPage
-          onCreateAccount={signUp}
-          onNavigateToSignIn={() => {
-            setAuthView("sign-in");
-          }}
-        />
-      );
-    }
-
     return (
-      <AuthenticationPage
-        onAuthenticate={signIn}
-        onNavigateToCreateAccount={() => {
-          setAuthView("create-account");
-        }}
-      />
+      <Routes>
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route
+          path="*"
+          element={
+            authView === "create-account" ? (
+              <CreateAccountPage
+                onCreateAccount={signUp}
+                onNavigateToSignIn={() => {
+                  setAuthView("sign-in");
+                }}
+              />
+            ) : (
+              <AuthenticationPage
+                onAuthenticate={signIn}
+                onNavigateToCreateAccount={() => {
+                  setAuthView("create-account");
+                }}
+              />
+            )
+          }
+        />
+      </Routes>
     );
   }
 
   return (
     <Routes>
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/support" element={<SupportPage />} />
       <Route
         path="/"
         element={

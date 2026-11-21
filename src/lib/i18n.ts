@@ -34,7 +34,7 @@ const resources = {
       app: {
         name: "Novavex ERP",
         summary:
-          "Feature-driven React architecture for flexible ERP modules and independent delivery.",
+          "The evolution of financial intelligence: Automated counting, advanced ERP, and cognitive AI.",
       },
       language: {
         label: "Language",
@@ -185,6 +185,56 @@ const resources = {
           "Accounting workflows for invoices and ledger operations will be available here.",
         backToDashboard: "Back to dashboard",
       },
+      privacyPage: {
+        eyebrow: "src/features/authentication",
+        title: "Privacy policy",
+        description:
+          "How Novavex collects, uses, and protects your data across the ERP workspace.",
+        back: "Back",
+        sections: {
+          dataCollection: {
+            title: "Data we collect",
+            body: "We collect only the account and workspace information needed to operate your ERP modules, such as your name, work email, and role assignments.",
+          },
+          dataUsage: {
+            title: "How we use your data",
+            body: "Your data is used to authenticate access, enforce role and attribute-based permissions, and provide the features you request inside the workspace.",
+          },
+          dataProtection: {
+            title: "How we protect your data",
+            body: "Access tokens are short-lived and refresh tokens are stored in httpOnly cookies. Data in transit is encrypted and access is restricted by RBAC and ABAC policies.",
+          },
+          contact: {
+            title: "Contact us",
+            body: "If you have questions about this policy, reach out through the support resources available from the sign-in page.",
+          },
+        },
+      },
+      supportPage: {
+        eyebrow: "src/features/authentication",
+        title: "Support",
+        description:
+          "Find answers and get help with your Novavex ERP workspace.",
+        back: "Back",
+        sections: {
+          gettingStarted: {
+            title: "Getting started",
+            body: "Sign in with your work email and password. If you don't have an account yet, use the \"Create account\" link on the sign-in page to request access.",
+          },
+          accountAccess: {
+            title: "Account & access",
+            body: "Access to ERP modules is controlled by role and attribute-based permissions. If a module looks unavailable, contact your workspace administrator to review your roles.",
+          },
+          troubleshooting: {
+            title: "Troubleshooting",
+            body: "If sign-in fails, double-check your email and password, and make sure Caps Lock is off. Sessions use short-lived access tokens, so you may need to sign in again after a period of inactivity.",
+          },
+          contactSupport: {
+            title: "Contact support",
+            body: "Still need help? Reach out to your workspace administrator or the Novavex support team for further assistance.",
+          },
+        },
+      },
       directory: {
         assets: "Global static images, icons and other shared files.",
         components: "Reusable UI building blocks shared across modules.",
@@ -311,7 +361,7 @@ const resources = {
       app: {
         name: "ERP Novavex",
         summary:
-          "Arhitectură React orientată pe funcționalități pentru module ERP flexibile și livrare independentă.",
+          "Evoluția inteligenței financiare: Calcul automatizat, ERP avansat și AI cognitiv.",
       },
       language: {
         label: "Limbă",
@@ -326,8 +376,7 @@ const resources = {
         signIn: {
           eyebrow: "Autentificare enterprise",
           title: "Bine ai revenit",
-          subtitle:
-            "{{summary}} Acces securizat la workspace-ul tău, operațiuni și modulele ERP.",
+          subtitle: "{{summary}}",
           description:
             "Folosește emailul de serviciu pentru a continua către dashboard-ul operațional.",
           hint: "Acces preview: {{email}} / {{password}}",
@@ -460,6 +509,56 @@ const resources = {
         description:
           "Fluxurile contabile pentru facturi și operațiuni de registru vor fi disponibile aici.",
         backToDashboard: "Înapoi la tabloul de bord",
+      },
+      privacyPage: {
+        eyebrow: "src/features/authentication",
+        title: "Politica de confidențialitate",
+        description:
+          "Cum colectează, utilizează și protejează Novavex datele tale în spațiul de lucru ERP.",
+        back: "Înapoi",
+        sections: {
+          dataCollection: {
+            title: "Datele pe care le colectăm",
+            body: "Colectăm doar informațiile despre cont și spațiul de lucru necesare pentru a opera modulele ERP, precum numele, e-mailul de serviciu și rolurile atribuite.",
+          },
+          dataUsage: {
+            title: "Cum utilizăm datele tale",
+            body: "Datele tale sunt folosite pentru autentificarea accesului, aplicarea permisiunilor bazate pe roluri și atribute și furnizarea funcționalităților solicitate în spațiul de lucru.",
+          },
+          dataProtection: {
+            title: "Cum protejăm datele tale",
+            body: "Token-urile de acces sunt de scurtă durată, iar token-urile de reîmprospătare sunt stocate în cookie-uri httpOnly. Datele în tranzit sunt criptate, iar accesul este restricționat prin politici RBAC și ABAC.",
+          },
+          contact: {
+            title: "Contactează-ne",
+            body: "Dacă ai întrebări despre această politică, contactează-ne prin resursele de suport disponibile din pagina de autentificare.",
+          },
+        },
+      },
+      supportPage: {
+        eyebrow: "src/features/authentication",
+        title: "Asistență",
+        description:
+          "Găsește răspunsuri și primește ajutor pentru spațiul tău de lucru Novavex ERP.",
+        back: "Înapoi",
+        sections: {
+          gettingStarted: {
+            title: "Primii pași",
+            body: "Autentifică-te cu e-mailul de serviciu și parola. Dacă nu ai încă un cont, folosește linkul „Creează cont” din pagina de autentificare pentru a solicita acces.",
+          },
+          accountAccess: {
+            title: "Cont și acces",
+            body: "Accesul la modulele ERP este controlat prin permisiuni bazate pe roluri și atribute. Dacă un modul pare indisponibil, contactează administratorul spațiului de lucru pentru a-ți verifica rolurile.",
+          },
+          troubleshooting: {
+            title: "Depanare",
+            body: "Dacă autentificarea eșuează, verifică e-mailul și parola și asigură-te că tasta Caps Lock este dezactivată. Sesiunile folosesc token-uri de acces de scurtă durată, așa că s-ar putea să fie nevoie să te autentifici din nou după o perioadă de inactivitate.",
+          },
+          contactSupport: {
+            title: "Contactează asistența",
+            body: "Mai ai nevoie de ajutor? Contactează administratorul spațiului de lucru sau echipa de asistență Novavex pentru sprijin suplimentar.",
+          },
+        },
       },
       directory: {
         assets: "Imagini statice globale, iconițe și alte fișiere partajate.",

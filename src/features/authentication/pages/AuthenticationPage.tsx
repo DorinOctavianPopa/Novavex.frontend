@@ -6,6 +6,7 @@ import { useAppContext } from "@/context";
 import { SignInError } from "@/types";
 import type { SignInRequest } from "@/types";
 import type { TFunction } from "i18next";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import "./AuthenticationPage.css";
@@ -324,20 +325,8 @@ export function AuthenticationPage({
           </p>
 
           <footer className="authentication-card__footer">
-            <a
-              href={supportLinks.support}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("auth.signIn.footer.support")}
-            </a>
-            <a
-              href={supportLinks.privacy}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("auth.signIn.footer.privacy")}
-            </a>
+            <Link to="/support">{t("auth.signIn.footer.support")}</Link>
+            <Link to="/privacy">{t("auth.signIn.footer.privacy")}</Link>
             <a
               href={supportLinks.terms}
               target="_blank"
