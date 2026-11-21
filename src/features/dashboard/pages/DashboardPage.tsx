@@ -130,10 +130,10 @@ export function DashboardPage() {
     return `${slug}-${suffix}`;
   }
 
-  function handleAddModule() {
+  function createModule(existingModules: ReadonlyArray<FeatureModule>): FeatureModule {
     const name = t("dashboard.grid.actions.newModuleName");
-    const id = createModuleId(name, modules);
-    const newModule: FeatureModule = {
+    const id = createModuleId(name, existingModules);
+    return {
       id,
       name,
       description: "",
@@ -141,6 +141,9 @@ export function DashboardPage() {
       status: "planned",
       alias: name.slice(0, 3).toUpperCase(),
     };
+  }
+
+  function handleModuleAdded(newModule: FeatureModule) {
     setModules((current) => [...current, newModule]);
   }
 
@@ -265,14 +268,17 @@ export function DashboardPage() {
           </div>
           <Grid<FeatureModule>
             columns={featureModuleColumns}
-            data={modules}
+            defaultData={modules}
             getRowKey={(module) => module.id}
-            onAddRow={handleAddModule}
+            createRow={createModule}
+            onAddRow={handleModuleAdded}
             addRowLabel={t("dashboard.grid.actions.add")}
+            enableEditing
             onSaveRow={handleSaveModule}
             editRowLabel={t("dashboard.grid.actions.edit")}
             saveRowLabel={t("dashboard.grid.actions.save")}
             cancelEditLabel={t("dashboard.grid.actions.cancelForm")}
+            enableDeleting
             onDeleteRow={handleDeleteModule}
             deleteRowLabel={t("dashboard.grid.actions.delete")}
             actionsHeader={t("dashboard.grid.actions.header")}
