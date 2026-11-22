@@ -106,6 +106,10 @@ export interface AppContextValue extends AppConfig {
   readonly verifyMfaCode: (code: string) => Promise<void>;
   readonly resendMfaCode: () => Promise<void>;
   readonly cancelMfaChallenge: () => void;
+  readonly signUpMfaChallenge: MfaChallenge | null;
   readonly signUp: (request: SignUpRequest) => Promise<void>;
+  readonly verifySignUpMfaCode: (code: string) => Promise<void>;
+  readonly resendSignUpMfaCode: () => Promise<void>;
+  readonly cancelSignUpMfaChallenge: () => void;
   readonly signOut: () => void;
 }

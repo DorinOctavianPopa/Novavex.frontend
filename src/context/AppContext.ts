@@ -11,7 +11,11 @@ export const appContextValue: AppContextValue = {
   verifyMfaCode: async () => undefined,
   resendMfaCode: async () => undefined,
   cancelMfaChallenge: () => undefined,
+  signUpMfaChallenge: null,
   signUp: async () => undefined,
+  verifySignUpMfaCode: async () => undefined,
+  resendSignUpMfaCode: async () => undefined,
+  cancelSignUpMfaChallenge: () => undefined,
   signOut: () => undefined,
 };
 

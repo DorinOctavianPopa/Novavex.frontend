@@ -186,6 +186,38 @@ const resources = {
             unavailable:
               "We couldn't verify this email right now. You can still continue.",
           },
+          mfa: {
+            title: "Check your email",
+            description:
+              "We sent a 6-digit verification code to {{email}}. Enter it below to finish creating your account.",
+            hint: "Preview code: {{code}}",
+            fields: {
+              code: "Verification code",
+            },
+            placeholders: {
+              code: "123456",
+            },
+            actions: {
+              verify: "Verify and create account",
+              verifying: "Verifying…",
+              resend: "Resend code",
+              resending: "Sending new code…",
+              editDetails: "Edit account details",
+            },
+            validation: {
+              codeRequired: "Enter the 6-digit code sent to your email.",
+              codeInvalidFormat:
+                "Enter all 6 digits of the verification code.",
+            },
+            errors: {
+              invalidCode: "That code is incorrect. Please try again.",
+              expiredCode:
+                "This code has expired. Request a new one and try again.",
+              generic:
+                "We could not verify your code right now. Please try again.",
+            },
+            resendSuccess: "We sent you a new verification code.",
+          },
           success: {
             title: "Account created",
             description: "Your account has been created. You can now sign in.",
@@ -543,6 +575,38 @@ const resources = {
             checking: "Se verifică disponibilitatea emailului\u2026",
             unavailable:
               "Nu am putut verifica acest email momentan. Poți continua totuși.",
+          },
+          mfa: {
+            title: "Verifică-ți emailul",
+            description:
+              "Am trimis un cod de verificare din 6 cifre la {{email}}. Introdu-l mai jos pentru a finaliza crearea contului.",
+            hint: "Cod preview: {{code}}",
+            fields: {
+              code: "Cod de verificare",
+            },
+            placeholders: {
+              code: "123456",
+            },
+            actions: {
+              verify: "Verifică și creează contul",
+              verifying: "Se verifică…",
+              resend: "Retrimite codul",
+              resending: "Se trimite un cod nou…",
+              editDetails: "Editează datele contului",
+            },
+            validation: {
+              codeRequired: "Introdu codul din 6 cifre trimis pe email.",
+              codeInvalidFormat:
+                "Introdu toate cele 6 cifre ale codului de verificare.",
+            },
+            errors: {
+              invalidCode: "Codul introdus este incorect. Încearcă din nou.",
+              expiredCode:
+                "Codul a expirat. Solicită unul nou și încearcă din nou.",
+              generic:
+                "Codul nu a putut fi verificat momentan. Încearcă din nou.",
+            },
+            resendSuccess: "Ți-am trimis un cod de verificare nou.",
           },
           success: {
             title: "Cont creat",

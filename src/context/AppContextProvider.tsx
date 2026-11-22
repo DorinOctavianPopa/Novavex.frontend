@@ -23,6 +23,13 @@ interface PendingMfaVerification {
   readonly code: string;
 }
 
+interface PendingSignUpVerification {
+  readonly fullName: string;
+  readonly email: string;
+  readonly password: string;
+  readonly code: string;
+}
+
 function delay(durationMs: number) {
   return new Promise((resolve) => {
     globalThis.setTimeout(resolve, durationMs);
@@ -41,6 +48,10 @@ export function AppContextProvider({
   const [session, setSession] = useState<AuthSession | null>(null);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallenge | null>(null);
   const pendingVerificationRef = useRef<PendingMfaVerification | null>(null);
+  const [signUpMfaChallenge, setSignUpMfaChallenge] =
+    useState<MfaChallenge | null>(null);
+  const pendingSignUpVerificationRef =
+    useRef<PendingSignUpVerification | null>(null);
 
   const signIn = useCallback(async ({ email, password }: SignInRequest) => {
     await delay(simulatedNetworkDelayMs);
@@ -121,19 +132,90 @@ export function AppContextProvider({
     setMfaChallenge(null);
   }, []);
 
-  const signUp = useCallback(async ({ email }: SignUpRequest) => {
+  const signUp = useCallback(
+    async ({ fullName, email, password }: SignUpRequest) => {
+      await delay(simulatedNetworkDelayMs);
+
+      if (
+        email.trim().toLowerCase() ===
+        demoSignInCredentials.email.toLowerCase()
+      ) {
+        throw new SignUpError("email-in-use");
+      }
+
+      const normalizedEmail = email.trim();
+      const code = generateMfaCode();
+
+      pendingSignUpVerificationRef.current = {
+        fullName,
+        email: normalizedEmail,
+        password,
+        code,
+      };
+      setSignUpMfaChallenge({
+        email: normalizedEmail,
+        expiresAt: new Date(Date.now() + mfaCodeTtlMs).toISOString(),
+        codeLength: mfaCodeLength,
+        previewCode: code,
+      });
+    },
+    [],
+  );
+
+  const verifySignUpMfaCode = useCallback(
+    async (code: string) => {
+      await delay(simulatedNetworkDelayMs);
+
+      const pending = pendingSignUpVerificationRef.current;
+
+      if (!pending || !signUpMfaChallenge) {
+        throw new MfaError("expired-code");
+      }
+
+      if (new Date(signUpMfaChallenge.expiresAt).getTime() < Date.now()) {
+        pendingSignUpVerificationRef.current = null;
+        setSignUpMfaChallenge(null);
+        throw new MfaError("expired-code");
+      }
+
+      if (code.trim() !== pending.code) {
+        throw new MfaError("invalid-code");
+      }
+
+      pendingSignUpVerificationRef.current = null;
+      setSignUpMfaChallenge(null);
+    },
+    [signUpMfaChallenge],
+  );
+
+  const resendSignUpMfaCode = useCallback(async () => {
+    const pending = pendingSignUpVerificationRef.current;
+
+    if (!pending) {
+      return;
+    }
+
     await delay(simulatedNetworkDelayMs);
 
-    if (
-      email.trim().toLowerCase() === demoSignInCredentials.email.toLowerCase()
-    ) {
-      throw new SignUpError("email-in-use");
-    }
+    const code = generateMfaCode();
+    const expiresAt = new Date(Date.now() + mfaCodeTtlMs).toISOString();
+
+    pendingSignUpVerificationRef.current = { ...pending, code };
+    setSignUpMfaChallenge((current) =>
+      current ? { ...current, expiresAt, previewCode: code } : current,
+    );
+  }, []);
+
+  const cancelSignUpMfaChallenge = useCallback(() => {
+    pendingSignUpVerificationRef.current = null;
+    setSignUpMfaChallenge(null);
   }, []);
 
   const signOut = useCallback(() => {
     pendingVerificationRef.current = null;
     setMfaChallenge(null);
+    pendingSignUpVerificationRef.current = null;
+    setSignUpMfaChallenge(null);
     setSession(null);
   }, []);
 
@@ -146,7 +228,11 @@ export function AppContextProvider({
       verifyMfaCode,
       resendMfaCode,
       cancelMfaChallenge,
+      signUpMfaChallenge,
       signUp,
+      verifySignUpMfaCode,
+      resendSignUpMfaCode,
+      cancelSignUpMfaChallenge,
       signOut,
     }),
     [
@@ -156,7 +242,11 @@ export function AppContextProvider({
       verifyMfaCode,
       resendMfaCode,
       cancelMfaChallenge,
+      signUpMfaChallenge,
       signUp,
+      verifySignUpMfaCode,
+      resendSignUpMfaCode,
+      cancelSignUpMfaChallenge,
       signOut,
     ],
   );

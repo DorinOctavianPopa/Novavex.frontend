@@ -4,8 +4,8 @@ import concept1Image from "@/assets/concept1.png";
 import { checkEmailAvailability } from "@/features/authentication/api/validateEmail";
 import type { EmailAvailability } from "@/features/authentication/api/validateEmail";
 import { useAppContext } from "@/context";
-import { SignUpError } from "@/types";
-import type { SignUpRequest } from "@/types";
+import { MfaError, SignUpError } from "@/types";
+import type { MfaChallenge, SignUpRequest } from "@/types";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +14,10 @@ import "./AuthenticationPage.css";
 interface CreateAccountPageProps {
   readonly onCreateAccount: (request: SignUpRequest) => Promise<void>;
   readonly onNavigateToSignIn: () => void;
+  readonly mfaChallenge: MfaChallenge | null;
+  readonly onVerifyMfaCode: (code: string) => Promise<void>;
+  readonly onResendMfaCode: () => Promise<void>;
+  readonly onCancelMfaChallenge: () => void;
 }
 
 type FormErrors = {
@@ -72,9 +76,25 @@ function validateForm(
   return errors;
 }
 
+function validateCode(code: string, t: TFunction): string | undefined {
+  if (!code.trim()) {
+    return t("auth.signUp.mfa.validation.codeRequired");
+  }
+
+  if (!/^\d{6}$/.test(code.trim())) {
+    return t("auth.signUp.mfa.validation.codeInvalidFormat");
+  }
+
+  return undefined;
+}
+
 export function CreateAccountPage({
   onCreateAccount,
   onNavigateToSignIn,
+  mfaChallenge,
+  onVerifyMfaCode,
+  onResendMfaCode,
+  onCancelMfaChallenge,
 }: Readonly<CreateAccountPageProps>) {
   const { name, summary } = useAppContext();
   const { t } = useTranslation();
@@ -82,6 +102,7 @@ export function CreateAccountPage({
   const emailId = useId();
   const passwordId = useId();
   const confirmPasswordId = useId();
+  const codeId = useId();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -100,11 +121,25 @@ export function CreateAccountPage({
     password: false,
     confirmPassword: false,
   });
+  const [code, setCode] = useState("");
+  const [codeTouched, setCodeTouched] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   const errors = validateForm(fullName, email, password, confirmPassword, t);
+  const codeError = validateCode(code, t);
 
   if (!errors.email && emailAvailability === "already-registered") {
     errors.email = t("auth.signUp.validation.emailAlreadyRegistered");
+  }
+
+  function resetMfaFormState() {
+    setCode("");
+    setCodeTouched(false);
+    setVerifyError(null);
+    setResendMessage(null);
   }
 
   async function runEmailAvailabilityCheck(
@@ -170,7 +205,7 @@ export function CreateAccountPage({
         email: email.trim(),
         password,
       });
-      setIsSuccess(true);
+      resetMfaFormState();
     } catch (error) {
       if (error instanceof SignUpError && error.code === "email-in-use") {
         setSubmitError(t("auth.signUp.errors.emailInUse"));
@@ -180,6 +215,55 @@ export function CreateAccountPage({
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleVerifyCode(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCodeTouched(true);
+    setVerifyError(null);
+
+    if (codeError) {
+      return;
+    }
+
+    setIsVerifying(true);
+
+    try {
+      await onVerifyMfaCode(code.trim());
+      setIsSuccess(true);
+    } catch (error) {
+      if (error instanceof MfaError && error.code === "invalid-code") {
+        setVerifyError(t("auth.signUp.mfa.errors.invalidCode"));
+      } else if (error instanceof MfaError && error.code === "expired-code") {
+        setVerifyError(t("auth.signUp.mfa.errors.expiredCode"));
+      } else {
+        setVerifyError(t("auth.signUp.mfa.errors.generic"));
+      }
+    } finally {
+      setIsVerifying(false);
+    }
+  }
+
+  async function handleResendCode() {
+    setVerifyError(null);
+    setResendMessage(null);
+    setIsResending(true);
+
+    try {
+      await onResendMfaCode();
+      setCode("");
+      setCodeTouched(false);
+      setResendMessage(t("auth.signUp.mfa.resendSuccess"));
+    } catch {
+      setVerifyError(t("auth.signUp.mfa.errors.generic"));
+    } finally {
+      setIsResending(false);
+    }
+  }
+
+  function handleCancelMfa() {
+    onCancelMfaChallenge();
+    resetMfaFormState();
   }
 
   function markTouched(field: keyof TouchedFields) {
@@ -232,6 +316,109 @@ export function CreateAccountPage({
                 {t("auth.signUp.actions.goToSignIn")}
               </button>
             </div>
+          ) : mfaChallenge ? (
+            <>
+              <div className="authentication-card__header">
+                <h2 id="create-account-title">
+                  {t("auth.signUp.mfa.title")}
+                </h2>
+                <p>
+                  {t("auth.signUp.mfa.description", {
+                    email: mfaChallenge.email,
+                  })}
+                </p>
+                <p className="authentication-card__hint">
+                  {t("auth.signUp.mfa.hint", {
+                    code: mfaChallenge.previewCode,
+                  })}
+                </p>
+              </div>
+
+              <form
+                className="authentication-form"
+                onSubmit={handleVerifyCode}
+                noValidate
+              >
+                <label className="authentication-field" htmlFor={codeId}>
+                  <span>{t("auth.signUp.mfa.fields.code")}</span>
+                  <input
+                    id={codeId}
+                    name="code"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={code}
+                    onChange={(event) => {
+                      setCode(event.target.value.replace(/\D/g, "").slice(0, 6));
+                    }}
+                    onBlur={() => {
+                      setCodeTouched(true);
+                    }}
+                    aria-invalid={codeTouched && Boolean(codeError)}
+                    aria-describedby={
+                      codeTouched && codeError ? `${codeId}-error` : undefined
+                    }
+                    disabled={isVerifying}
+                    placeholder={t("auth.signUp.mfa.placeholders.code")}
+                  />
+                  {codeTouched && codeError ? (
+                    <span
+                      id={`${codeId}-error`}
+                      className="authentication-field__error"
+                      role="alert"
+                    >
+                      {codeError}
+                    </span>
+                  ) : null}
+                </label>
+
+                {verifyError ? (
+                  <p className="authentication-form__error" role="alert">
+                    {verifyError}
+                  </p>
+                ) : null}
+
+                {resendMessage ? (
+                  <p className="authentication-form__success" role="status">
+                    {resendMessage}
+                  </p>
+                ) : null}
+
+                <button
+                  type="submit"
+                  className="authentication-form__submit"
+                  disabled={isVerifying}
+                >
+                  {isVerifying
+                    ? t("auth.signUp.mfa.actions.verifying")
+                    : t("auth.signUp.mfa.actions.verify")}
+                </button>
+              </form>
+
+              <div className="authentication-form__meta">
+                <button
+                  type="button"
+                  className="authentication-link-button"
+                  onClick={() => {
+                    void handleResendCode();
+                  }}
+                  disabled={isResending || isVerifying}
+                >
+                  {isResending
+                    ? t("auth.signUp.mfa.actions.resending")
+                    : t("auth.signUp.mfa.actions.resend")}
+                </button>
+                <button
+                  type="button"
+                  className="authentication-link-button"
+                  onClick={handleCancelMfa}
+                  disabled={isVerifying}
+                >
+                  {t("auth.signUp.mfa.actions.editDetails")}
+                </button>
+              </div>
+            </>
           ) : (
             <>
               <div className="authentication-card__header">

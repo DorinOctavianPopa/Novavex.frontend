@@ -77,7 +77,11 @@ export function AppRoutes() {
     verifyMfaCode,
     resendMfaCode,
     cancelMfaChallenge,
+    signUpMfaChallenge,
     signUp,
+    verifySignUpMfaCode,
+    resendSignUpMfaCode,
+    cancelSignUpMfaChallenge,
   } = useAppContext();
   const [authView, setAuthView] = useState<"sign-in" | "create-account">(
     "sign-in",
@@ -97,6 +101,10 @@ export function AppRoutes() {
                 onNavigateToSignIn={() => {
                   setAuthView("sign-in");
                 }}
+                mfaChallenge={signUpMfaChallenge}
+                onVerifyMfaCode={verifySignUpMfaCode}
+                onResendMfaCode={resendSignUpMfaCode}
+                onCancelMfaChallenge={cancelSignUpMfaChallenge}
               />
             ) : (
               <AuthenticationPage
