@@ -182,6 +182,11 @@
   font-size: 0.875rem;
 }
 
+.authentication-form__success {
+  color: #86efac;
+  font-size: 0.875rem;
+}
+
 .authentication-form__meta,
 .authentication-card__footer {
   display: flex;

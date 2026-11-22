@@ -61,6 +61,26 @@ export interface SignInRequest {
   readonly password: string;
 }
 
+export type MfaErrorCode = "invalid-code" | "expired-code";
+
+export class MfaError extends Error {
+  readonly code: MfaErrorCode;
+
+  constructor(code: MfaErrorCode) {
+    super(code);
+    this.name = "MfaError";
+    this.code = code;
+  }
+}
+
+export interface MfaChallenge {
+  readonly email: string;
+  readonly expiresAt: string;
+  readonly codeLength: number;
+  /** Demo-only: no email provider is wired up, so the code is surfaced for preview access. */
+  readonly previewCode: string;
+}
+
 export type SignUpErrorCode = "email-in-use";
 
 export class SignUpError extends Error {
@@ -81,7 +101,11 @@ export interface SignUpRequest {
 
 export interface AppContextValue extends AppConfig {
   readonly session: AuthSession | null;
+  readonly mfaChallenge: MfaChallenge | null;
   readonly signIn: (credentials: SignInRequest) => Promise<void>;
+  readonly verifyMfaCode: (code: string) => Promise<void>;
+  readonly resendMfaCode: () => Promise<void>;
+  readonly cancelMfaChallenge: () => void;
   readonly signUp: (request: SignUpRequest) => Promise<void>;
   readonly signOut: () => void;
 }

@@ -9,7 +9,6 @@ import {
   SupportPage,
 } from "@/features/authentication";
 import { DashboardPage } from "@/features/dashboard";
-import { AccountingModulePage } from "@/features/financial";
 import { InventoryModulePage } from "@/features/inventory";
 import { AccountingPage } from "@/features/accounting";
 import { isAuthorized } from "@/services";
@@ -34,7 +33,13 @@ const inventoryReadPolicy = {
 };
 
 const accountingPolicy = {
-  anyRoles: ["super_admin", "cto", "finance_manager", "senior_accountant", "junior_accountant"] as const,
+  anyRoles: [
+    "super_admin",
+    "cto",
+    "finance_manager",
+    "senior_accountant",
+    "junior_accountant",
+  ] as const,
 };
 
 function AccessDeniedView() {
@@ -65,7 +70,15 @@ function AuthorizedRoute({
 }
 
 export function AppRoutes() {
-  const { session, signIn, signUp } = useAppContext();
+  const {
+    session,
+    mfaChallenge,
+    signIn,
+    verifyMfaCode,
+    resendMfaCode,
+    cancelMfaChallenge,
+    signUp,
+  } = useAppContext();
   const [authView, setAuthView] = useState<"sign-in" | "create-account">(
     "sign-in",
   );
@@ -91,6 +104,10 @@ export function AppRoutes() {
                 onNavigateToCreateAccount={() => {
                   setAuthView("create-account");
                 }}
+                mfaChallenge={mfaChallenge}
+                onVerifyMfaCode={verifyMfaCode}
+                onResendMfaCode={resendMfaCode}
+                onCancelMfaChallenge={cancelMfaChallenge}
               />
             )
           }

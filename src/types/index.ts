@@ -6,12 +6,14 @@ export type {
   AuthUser,
   UserAttributes,
 } from "@/types/auth";
-export { SignInError, SignUpError } from "@/types/app";
+export { MfaError, SignInError, SignUpError } from "@/types/app";
 export type {
   AppConfig,
   AppContextValue,
   DirectoryNode,
   FeatureModule,
+  MfaChallenge,
+  MfaErrorCode,
   SecurityConfig,
   SignInErrorCode,
   SignInRequest,
