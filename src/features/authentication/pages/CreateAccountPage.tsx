@@ -1,35 +1,48 @@
 import { useId, useRef, useState } from "react";
 
-import concept1Image from "@/assets/concept1.png";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Link from "@mui/material/Link";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+
 import { checkEmailAvailability } from "@/features/authentication/api/validateEmail";
 import type { EmailAvailability } from "@/features/authentication/api/validateEmail";
 import { useAppContext } from "@/context";
+import { AuthPageShell } from "@/features/authentication/components";
 import { MfaError, SignUpError } from "@/types";
-import type { MfaChallenge, SignUpRequest } from "@/types";
+import type {
+  MfaChallenge,
+  SignUpEmailRequest,
+  SignUpVerificationRequest,
+} from "@/types";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
-import "./AuthenticationPage.css";
-
 interface CreateAccountPageProps {
-  readonly onCreateAccount: (request: SignUpRequest) => Promise<void>;
+  readonly onCreateAccount: (request: SignUpEmailRequest) => Promise<void>;
   readonly onNavigateToSignIn: () => void;
   readonly mfaChallenge: MfaChallenge | null;
-  readonly onVerifyMfaCode: (code: string) => Promise<void>;
+  readonly onVerifyMfaCode: (request: SignUpVerificationRequest) => Promise<void>;
   readonly onResendMfaCode: () => Promise<void>;
   readonly onCancelMfaChallenge: () => void;
 }
 
-type FormErrors = {
-  fullName?: string;
+type EmailStepErrors = {
   email?: string;
+};
+
+type DetailsStepErrors = {
+  fullName?: string;
   password?: string;
   confirmPassword?: string;
 };
 
-type TouchedFields = {
+type DetailsTouchedFields = {
   fullName: boolean;
-  email: boolean;
   password: boolean;
   confirmPassword: boolean;
 };
@@ -38,23 +51,28 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function validateForm(
-  fullName: string,
-  email: string,
-  password: string,
-  confirmPassword: string,
-  t: TFunction,
-): FormErrors {
-  const errors: FormErrors = {};
-
-  if (!fullName.trim()) {
-    errors.fullName = t("auth.signUp.validation.fullNameRequired");
-  }
+function validateEmailStep(email: string, t: TFunction): EmailStepErrors {
+  const errors: EmailStepErrors = {};
 
   if (!email.trim()) {
     errors.email = t("auth.signUp.validation.emailRequired");
   } else if (!isValidEmail(email)) {
     errors.email = t("auth.signUp.validation.emailInvalid");
+  }
+
+  return errors;
+}
+
+function validateDetailsStep(
+  fullName: string,
+  password: string,
+  confirmPassword: string,
+  t: TFunction,
+): DetailsStepErrors {
+  const errors: DetailsStepErrors = {};
+
+  if (!fullName.trim()) {
+    errors.fullName = t("auth.signUp.validation.fullNameRequired");
   }
 
   if (!password) {
@@ -96,28 +114,32 @@ export function CreateAccountPage({
   onResendMfaCode,
   onCancelMfaChallenge,
 }: Readonly<CreateAccountPageProps>) {
-  const { name, summary } = useAppContext();
+  const { summary } = useAppContext();
   const { t } = useTranslation();
-  const fullNameId = useId();
   const emailId = useId();
+  const fullNameId = useId();
   const passwordId = useId();
   const confirmPasswordId = useId();
   const codeId = useId();
+  const cardTitleId = useId();
 
-  const [fullName, setFullName] = useState("");
+  // Step 1: request the work email so we can send a verification code.
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [emailAvailability, setEmailAvailability] = useState<
     EmailAvailability | "idle" | "checking"
   >("idle");
   const emailCheckTokenRef = useRef(0);
-  const [touchedFields, setTouchedFields] = useState<TouchedFields>({
+
+  // Step 2: verify the emailed code and collect the account's full name and password.
+  const [fullName, setFullName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [detailsTouched, setDetailsTouched] = useState<DetailsTouchedFields>({
     fullName: false,
-    email: false,
     password: false,
     confirmPassword: false,
   });
@@ -128,14 +150,24 @@ export function CreateAccountPage({
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
 
-  const errors = validateForm(fullName, email, password, confirmPassword, t);
+  const emailErrors = validateEmailStep(email, t);
+  const detailsErrors = validateDetailsStep(
+    fullName,
+    password,
+    confirmPassword,
+    t,
+  );
   const codeError = validateCode(code, t);
 
-  if (!errors.email && emailAvailability === "already-registered") {
-    errors.email = t("auth.signUp.validation.emailAlreadyRegistered");
+  if (!emailErrors.email && emailAvailability === "already-registered") {
+    emailErrors.email = t("auth.signUp.validation.emailAlreadyRegistered");
   }
 
-  function resetMfaFormState() {
+  function resetDetailsFormState() {
+    setFullName("");
+    setPassword("");
+    setConfirmPassword("");
+    setDetailsTouched({ fullName: false, password: false, confirmPassword: false });
     setCode("");
     setCodeTouched(false);
     setVerifyError(null);
@@ -157,7 +189,7 @@ export function CreateAccountPage({
   }
 
   function handleEmailBlur() {
-    markTouched("email");
+    setEmailTouched(true);
     const trimmed = email.trim();
 
     if (isValidEmail(trimmed)) {
@@ -168,22 +200,12 @@ export function CreateAccountPage({
     }
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmitEmail(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setTouchedFields({
-      fullName: true,
-      email: true,
-      password: true,
-      confirmPassword: true,
-    });
+    setEmailTouched(true);
     setSubmitError(null);
 
-    if (
-      errors.fullName ||
-      errors.email ||
-      errors.password ||
-      errors.confirmPassword
-    ) {
+    if (emailErrors.email) {
       return;
     }
 
@@ -197,15 +219,11 @@ export function CreateAccountPage({
       return;
     }
 
-    setIsSubmitting(true);
+    setIsSubmittingEmail(true);
 
     try {
-      await onCreateAccount({
-        fullName: fullName.trim(),
-        email: email.trim(),
-        password,
-      });
-      resetMfaFormState();
+      await onCreateAccount({ email: email.trim() });
+      resetDetailsFormState();
     } catch (error) {
       if (error instanceof SignUpError && error.code === "email-in-use") {
         setSubmitError(t("auth.signUp.errors.emailInUse"));
@@ -213,23 +231,33 @@ export function CreateAccountPage({
         setSubmitError(t("auth.signUp.errors.generic"));
       }
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingEmail(false);
     }
   }
 
-  async function handleVerifyCode(event: React.FormEvent<HTMLFormElement>) {
+  async function handleVerifyDetails(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setDetailsTouched({ fullName: true, password: true, confirmPassword: true });
     setCodeTouched(true);
     setVerifyError(null);
 
-    if (codeError) {
+    if (
+      detailsErrors.fullName ||
+      detailsErrors.password ||
+      detailsErrors.confirmPassword ||
+      codeError
+    ) {
       return;
     }
 
     setIsVerifying(true);
 
     try {
-      await onVerifyMfaCode(code.trim());
+      await onVerifyMfaCode({
+        code: code.trim(),
+        fullName: fullName.trim(),
+        password,
+      });
       setIsSuccess(true);
     } catch (error) {
       if (error instanceof MfaError && error.code === "invalid-code") {
@@ -261,363 +289,282 @@ export function CreateAccountPage({
     }
   }
 
-  function handleCancelMfa() {
+  function handleUseDifferentEmail() {
     onCancelMfaChallenge();
-    resetMfaFormState();
+    resetDetailsFormState();
   }
 
-  function markTouched(field: keyof TouchedFields) {
-    setTouchedFields((current) => ({
+  function markDetailsTouched(field: keyof DetailsTouchedFields) {
+    setDetailsTouched((current) => ({
       ...current,
       [field]: true,
     }));
   }
 
   return (
-    <main className="authentication-page">
-      <section className="authentication-shell">
-        <div className="authentication-shell__intro authentication-panel">
-          <div className="authentication-shell__topbar">
-            <p className="authentication-shell__eyebrow">
-              {t("auth.signUp.eyebrow")}
-            </p>
-          </div>
-          <div className="authentication-shell__copy">
-            <img
-              className="authentication-shell__logo"
-              src={concept1Image}
-              alt="Novavex logo"
+    <AuthPageShell
+      eyebrow={t("auth.signUp.eyebrow")}
+      subtitle={t("auth.signUp.subtitle", { summary })}
+      highlights={[
+        t("auth.signUp.highlights.onboarding"),
+        t("auth.signUp.highlights.security"),
+        t("auth.signUp.highlights.support"),
+      ]}
+      cardTitleId={cardTitleId}
+    >
+      {isSuccess ? (
+        <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
+          <Typography id={cardTitleId} variant="h5" component="h2">
+            {t("auth.signUp.success.title")}
+          </Typography>
+          <Typography color="text.secondary">
+            {t("auth.signUp.success.description")}
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={onNavigateToSignIn}
+          >
+            {t("auth.signUp.actions.goToSignIn")}
+          </Button>
+        </Stack>
+      ) : mfaChallenge ? (
+        <>
+          <Stack spacing={1}>
+            <Typography id={cardTitleId} variant="h5" component="h2">
+              {t("auth.signUp.mfa.title")}
+            </Typography>
+            <Typography color="text.secondary">
+              {t("auth.signUp.mfa.description", {
+                email: mfaChallenge.email,
+              })}
+            </Typography>
+          </Stack>
+
+          <Box
+            component="form"
+            onSubmit={handleVerifyDetails}
+            noValidate
+            sx={{ display: "grid", gap: 3 }}
+          >
+            <TextField
+              id={codeId}
+              name="code"
+              label={t("auth.signUp.mfa.fields.code")}
+              type="text"
+              autoComplete="one-time-code"
+              slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 6 } }}
+              fullWidth
+              value={code}
+              onChange={(event) => {
+                setCode(event.target.value.replace(/\D/g, "").slice(0, 6));
+              }}
+              onBlur={() => {
+                setCodeTouched(true);
+              }}
+              error={codeTouched && Boolean(codeError)}
+              helperText={codeTouched ? codeError : undefined}
+              disabled={isVerifying}
+              placeholder={t("auth.signUp.mfa.placeholders.code")}
             />
-            <h1>{name}</h1>
-            <p>{t("auth.signUp.subtitle", { summary })}</p>
-          </div>
-          <ul className="authentication-highlights">
-            <li>{t("auth.signUp.highlights.onboarding")}</li>
-            <li>{t("auth.signUp.highlights.security")}</li>
-            <li>{t("auth.signUp.highlights.support")}</li>
-          </ul>
-        </div>
 
-        <section
-          className="authentication-panel authentication-card"
-          aria-labelledby="create-account-title"
-        >
-          {isSuccess ? (
-            <div className="authentication-card__success">
-              <h2 id="create-account-title">
-                {t("auth.signUp.success.title")}
-              </h2>
-              <p>{t("auth.signUp.success.description")}</p>
-              <button
-                type="button"
-                className="authentication-form__submit"
-                onClick={onNavigateToSignIn}
-              >
-                {t("auth.signUp.actions.goToSignIn")}
-              </button>
-            </div>
-          ) : mfaChallenge ? (
-            <>
-              <div className="authentication-card__header">
-                <h2 id="create-account-title">
-                  {t("auth.signUp.mfa.title")}
-                </h2>
-                <p>
-                  {t("auth.signUp.mfa.description", {
-                    email: mfaChallenge.email,
-                  })}
-                </p>
-                <p className="authentication-card__hint">
-                  {t("auth.signUp.mfa.hint", {
-                    code: mfaChallenge.previewCode,
-                  })}
-                </p>
-              </div>
+            <TextField
+              id={fullNameId}
+              name="fullName"
+              label={t("auth.signUp.fields.fullName")}
+              type="text"
+              autoComplete="name"
+              fullWidth
+              value={fullName}
+              onChange={(event) => {
+                setFullName(event.target.value);
+              }}
+              onBlur={() => {
+                markDetailsTouched("fullName");
+              }}
+              error={detailsTouched.fullName && Boolean(detailsErrors.fullName)}
+              helperText={
+                detailsTouched.fullName ? detailsErrors.fullName : undefined
+              }
+              disabled={isVerifying}
+              placeholder={t("auth.signUp.placeholders.fullName")}
+            />
 
-              <form
-                className="authentication-form"
-                onSubmit={handleVerifyCode}
-                noValidate
-              >
-                <label className="authentication-field" htmlFor={codeId}>
-                  <span>{t("auth.signUp.mfa.fields.code")}</span>
-                  <input
-                    id={codeId}
-                    name="code"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                    value={code}
-                    onChange={(event) => {
-                      setCode(event.target.value.replace(/\D/g, "").slice(0, 6));
-                    }}
-                    onBlur={() => {
-                      setCodeTouched(true);
-                    }}
-                    aria-invalid={codeTouched && Boolean(codeError)}
-                    aria-describedby={
-                      codeTouched && codeError ? `${codeId}-error` : undefined
-                    }
-                    disabled={isVerifying}
-                    placeholder={t("auth.signUp.mfa.placeholders.code")}
-                  />
-                  {codeTouched && codeError ? (
-                    <span
-                      id={`${codeId}-error`}
-                      className="authentication-field__error"
-                      role="alert"
-                    >
-                      {codeError}
-                    </span>
-                  ) : null}
-                </label>
+            <TextField
+              id={passwordId}
+              name="password"
+              label={t("auth.signUp.fields.password")}
+              type="password"
+              autoComplete="new-password"
+              fullWidth
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+              }}
+              onBlur={() => {
+                markDetailsTouched("password");
+              }}
+              error={detailsTouched.password && Boolean(detailsErrors.password)}
+              helperText={
+                detailsTouched.password ? detailsErrors.password : undefined
+              }
+              disabled={isVerifying}
+              placeholder={t("auth.signUp.placeholders.password")}
+            />
 
-                {verifyError ? (
-                  <p className="authentication-form__error" role="alert">
-                    {verifyError}
-                  </p>
-                ) : null}
+            <TextField
+              id={confirmPasswordId}
+              name="confirmPassword"
+              label={t("auth.signUp.fields.confirmPassword")}
+              type="password"
+              autoComplete="new-password"
+              fullWidth
+              value={confirmPassword}
+              onChange={(event) => {
+                setConfirmPassword(event.target.value);
+              }}
+              onBlur={() => {
+                markDetailsTouched("confirmPassword");
+              }}
+              error={
+                detailsTouched.confirmPassword &&
+                Boolean(detailsErrors.confirmPassword)
+              }
+              helperText={
+                detailsTouched.confirmPassword
+                  ? detailsErrors.confirmPassword
+                  : undefined
+              }
+              disabled={isVerifying}
+              placeholder={t("auth.signUp.placeholders.confirmPassword")}
+            />
 
-                {resendMessage ? (
-                  <p className="authentication-form__success" role="status">
-                    {resendMessage}
-                  </p>
-                ) : null}
+            {verifyError ? <Alert severity="error">{verifyError}</Alert> : null}
+            {resendMessage ? (
+              <Alert severity="success">{resendMessage}</Alert>
+            ) : null}
 
-                <button
-                  type="submit"
-                  className="authentication-form__submit"
-                  disabled={isVerifying}
-                >
-                  {isVerifying
-                    ? t("auth.signUp.mfa.actions.verifying")
-                    : t("auth.signUp.mfa.actions.verify")}
-                </button>
-              </form>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={isVerifying}
+              startIcon={
+                isVerifying ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : undefined
+              }
+            >
+              {isVerifying
+                ? t("auth.signUp.mfa.actions.verifying")
+                : t("auth.signUp.mfa.actions.verify")}
+            </Button>
+          </Box>
 
-              <div className="authentication-form__meta">
-                <button
-                  type="button"
-                  className="authentication-link-button"
-                  onClick={() => {
-                    void handleResendCode();
-                  }}
-                  disabled={isResending || isVerifying}
-                >
-                  {isResending
-                    ? t("auth.signUp.mfa.actions.resending")
-                    : t("auth.signUp.mfa.actions.resend")}
-                </button>
-                <button
-                  type="button"
-                  className="authentication-link-button"
-                  onClick={handleCancelMfa}
-                  disabled={isVerifying}
-                >
-                  {t("auth.signUp.mfa.actions.editDetails")}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="authentication-card__header">
-                <h2 id="create-account-title">{t("auth.signUp.title")}</h2>
-                <p>{t("auth.signUp.description")}</p>
-              </div>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: "space-between", flexWrap: "wrap" }}
+          >
+            <Button
+              variant="text"
+              onClick={() => {
+                void handleResendCode();
+              }}
+              disabled={isResending || isVerifying}
+            >
+              {isResending
+                ? t("auth.signUp.mfa.actions.resending")
+                : t("auth.signUp.mfa.actions.resend")}
+            </Button>
+            <Button
+              variant="text"
+              onClick={handleUseDifferentEmail}
+              disabled={isVerifying}
+            >
+              {t("auth.signUp.mfa.actions.useDifferentEmail")}
+            </Button>
+          </Stack>
+        </>
+      ) : (
+        <>
+          <Stack spacing={1}>
+            <Typography id={cardTitleId} variant="h5" component="h2">
+              {t("auth.signUp.title")}
+            </Typography>
+            <Typography color="text.secondary">
+              {t("auth.signUp.description")}
+            </Typography>
+          </Stack>
 
-              <form
-                className="authentication-form"
-                onSubmit={handleSubmit}
-                noValidate
-              >
-                <label className="authentication-field" htmlFor={fullNameId}>
-                  <span>{t("auth.signUp.fields.fullName")}</span>
-                  <input
-                    id={fullNameId}
-                    name="fullName"
-                    type="text"
-                    autoComplete="name"
-                    value={fullName}
-                    onChange={(event) => {
-                      setFullName(event.target.value);
-                    }}
-                    onBlur={() => {
-                      markTouched("fullName");
-                    }}
-                    aria-invalid={
-                      touchedFields.fullName && Boolean(errors.fullName)
-                    }
-                    aria-describedby={
-                      touchedFields.fullName && errors.fullName
-                        ? `${fullNameId}-error`
-                        : undefined
-                    }
-                    disabled={isSubmitting}
-                    placeholder={t("auth.signUp.placeholders.fullName")}
-                  />
-                  {touchedFields.fullName && errors.fullName ? (
-                    <span
-                      id={`${fullNameId}-error`}
-                      className="authentication-field__error"
-                      role="alert"
-                    >
-                      {errors.fullName}
-                    </span>
-                  ) : null}
-                </label>
+          <Box
+            component="form"
+            onSubmit={handleSubmitEmail}
+            noValidate
+            sx={{ display: "grid", gap: 3 }}
+          >
+            <TextField
+              id={emailId}
+              name="email"
+              label={t("auth.signUp.fields.email")}
+              type="email"
+              autoComplete="email"
+              fullWidth
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                emailCheckTokenRef.current += 1;
+                setEmailAvailability("idle");
+              }}
+              onBlur={handleEmailBlur}
+              error={emailTouched && Boolean(emailErrors.email)}
+              helperText={
+                emailTouched && emailErrors.email
+                  ? emailErrors.email
+                  : !emailErrors.email && emailAvailability === "checking"
+                    ? t("auth.signUp.emailCheck.checking")
+                    : !emailErrors.email && emailAvailability === "unknown"
+                      ? t("auth.signUp.emailCheck.unavailable")
+                      : undefined
+              }
+              disabled={isSubmittingEmail}
+              placeholder={t("auth.signUp.placeholders.email")}
+            />
 
-                <label className="authentication-field" htmlFor={emailId}>
-                  <span>{t("auth.signUp.fields.email")}</span>
-                  <input
-                    id={emailId}
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value);
-                      emailCheckTokenRef.current += 1;
-                      setEmailAvailability("idle");
-                    }}
-                    onBlur={handleEmailBlur}
-                    aria-invalid={touchedFields.email && Boolean(errors.email)}
-                    aria-describedby={
-                      touchedFields.email && errors.email
-                        ? `${emailId}-error`
-                        : undefined
-                    }
-                    disabled={isSubmitting}
-                    placeholder={t("auth.signUp.placeholders.email")}
-                  />
-                  {touchedFields.email && errors.email ? (
-                    <span
-                      id={`${emailId}-error`}
-                      className="authentication-field__error"
-                      role="alert"
-                    >
-                      {errors.email}
-                    </span>
-                  ) : null}
-                  {!errors.email && emailAvailability === "checking" ? (
-                    <span className="authentication-field__hint">
-                      {t("auth.signUp.emailCheck.checking")}
-                    </span>
-                  ) : null}
-                  {!errors.email && emailAvailability === "unknown" ? (
-                    <span className="authentication-field__hint">
-                      {t("auth.signUp.emailCheck.unavailable")}
-                    </span>
-                  ) : null}
-                </label>
+            {submitError ? <Alert severity="error">{submitError}</Alert> : null}
 
-                <label className="authentication-field" htmlFor={passwordId}>
-                  <span>{t("auth.signUp.fields.password")}</span>
-                  <input
-                    id={passwordId}
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(event) => {
-                      setPassword(event.target.value);
-                    }}
-                    onBlur={() => {
-                      markTouched("password");
-                    }}
-                    aria-invalid={
-                      touchedFields.password && Boolean(errors.password)
-                    }
-                    aria-describedby={
-                      touchedFields.password && errors.password
-                        ? `${passwordId}-error`
-                        : undefined
-                    }
-                    disabled={isSubmitting}
-                    placeholder={t("auth.signUp.placeholders.password")}
-                  />
-                  {touchedFields.password && errors.password ? (
-                    <span
-                      id={`${passwordId}-error`}
-                      className="authentication-field__error"
-                      role="alert"
-                    >
-                      {errors.password}
-                    </span>
-                  ) : null}
-                </label>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={isSubmittingEmail || emailAvailability === "checking"}
+              startIcon={
+                isSubmittingEmail ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : undefined
+              }
+            >
+              {isSubmittingEmail
+                ? t("auth.signUp.actions.sendingCode")
+                : t("auth.signUp.actions.continue")}
+            </Button>
+          </Box>
 
-                <label
-                  className="authentication-field"
-                  htmlFor={confirmPasswordId}
-                >
-                  <span>{t("auth.signUp.fields.confirmPassword")}</span>
-                  <input
-                    id={confirmPasswordId}
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={(event) => {
-                      setConfirmPassword(event.target.value);
-                    }}
-                    onBlur={() => {
-                      markTouched("confirmPassword");
-                    }}
-                    aria-invalid={
-                      touchedFields.confirmPassword &&
-                      Boolean(errors.confirmPassword)
-                    }
-                    aria-describedby={
-                      touchedFields.confirmPassword && errors.confirmPassword
-                        ? `${confirmPasswordId}-error`
-                        : undefined
-                    }
-                    disabled={isSubmitting}
-                    placeholder={t("auth.signUp.placeholders.confirmPassword")}
-                  />
-                  {touchedFields.confirmPassword && errors.confirmPassword ? (
-                    <span
-                      id={`${confirmPasswordId}-error`}
-                      className="authentication-field__error"
-                      role="alert"
-                    >
-                      {errors.confirmPassword}
-                    </span>
-                  ) : null}
-                </label>
-
-                {submitError ? (
-                  <p className="authentication-form__error" role="alert">
-                    {submitError}
-                  </p>
-                ) : null}
-
-                <button
-                  type="submit"
-                  className="authentication-form__submit"
-                  disabled={isSubmitting || emailAvailability === "checking"}
-                >
-                  {isSubmitting
-                    ? t("auth.signUp.actions.creating")
-                    : t("auth.signUp.actions.createAccount")}
-                </button>
-              </form>
-
-              <p className="authentication-card__signup">
-                {t("auth.signUp.signInPrompt")}{" "}
-                <button
-                  type="button"
-                  className="authentication-link-button"
-                  onClick={onNavigateToSignIn}
-                >
-                  {t("auth.signUp.actions.signIn")}
-                </button>
-              </p>
-            </>
-          )}
-        </section>
-      </section>
-    </main>
+          <Typography sx={{ textAlign: "center" }}>
+            {t("auth.signUp.signInPrompt")}{" "}
+            <Link
+              component="button"
+              type="button"
+              underline="hover"
+              onClick={onNavigateToSignIn}
+            >
+              {t("auth.signUp.actions.signIn")}
+            </Link>
+          </Typography>
+        </>
+      )}
+    </AuthPageShell>
   );
 }

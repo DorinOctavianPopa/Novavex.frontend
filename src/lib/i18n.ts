@@ -102,7 +102,6 @@ const resources = {
             title: "Check your email",
             description:
               "We sent a 6-digit verification code to {{email}}. Enter it below to finish signing in.",
-            hint: "Preview code: {{code}}",
             fields: {
               code: "Verification code",
             },
@@ -136,7 +135,7 @@ const resources = {
           title: "Create an account",
           subtitle: "{{summary}} Set up your workspace access in a few steps.",
           description:
-            "Fill in your details to request access to the operations dashboard.",
+            "Enter your work email and we'll send you a verification code to continue.",
           fields: {
             fullName: "Full name",
             email: "Work email",
@@ -150,8 +149,8 @@ const resources = {
             confirmPassword: "Re-enter your password",
           },
           actions: {
-            createAccount: "Create account",
-            creating: "Creating account…",
+            continue: "Continue",
+            sendingCode: "Sending code…",
             signIn: "Sign in",
             goToSignIn: "Go to sign in",
           },
@@ -179,7 +178,7 @@ const resources = {
           errors: {
             emailInUse: "An account with this email already exists.",
             generic:
-              "We could not create your account right now. Please try again.",
+              "We could not send a verification code right now. Please try again.",
           },
           emailCheck: {
             checking: "Checking email availability\u2026",
@@ -187,10 +186,9 @@ const resources = {
               "We couldn't verify this email right now. You can still continue.",
           },
           mfa: {
-            title: "Check your email",
+            title: "Verify your email",
             description:
-              "We sent a 6-digit verification code to {{email}}. Enter it below to finish creating your account.",
-            hint: "Preview code: {{code}}",
+              "We sent a 6-digit verification code to {{email}}. Enter it below along with your name and a password to finish creating your account.",
             fields: {
               code: "Verification code",
             },
@@ -202,7 +200,7 @@ const resources = {
               verifying: "Verifying…",
               resend: "Resend code",
               resending: "Sending new code…",
-              editDetails: "Edit account details",
+              useDifferentEmail: "Use a different email",
             },
             validation: {
               codeRequired: "Enter the 6-digit code sent to your email.",
@@ -493,7 +491,6 @@ const resources = {
             title: "Verifică-ți emailul",
             description:
               "Am trimis un cod de verificare din 6 cifre la {{email}}. Introdu-l mai jos pentru a finaliza autentificarea.",
-            hint: "Cod preview: {{code}}",
             fields: {
               code: "Cod de verificare",
             },
@@ -528,7 +525,7 @@ const resources = {
           subtitle:
             "{{summary}} Configurează accesul la workspace în câțiva pași.",
           description:
-            "Completează datele tale pentru a solicita acces la dashboard-ul operațional.",
+            "Introdu emailul tău de serviciu și îți vom trimite un cod de verificare pentru a continua.",
           fields: {
             fullName: "Nume complet",
             email: "Email de serviciu",
@@ -542,8 +539,8 @@ const resources = {
             confirmPassword: "Reintrodu parola",
           },
           actions: {
-            createAccount: "Creează cont",
-            creating: "Se creează contul…",
+            continue: "Continuă",
+            sendingCode: "Se trimite codul…",
             signIn: "Autentificare",
             goToSignIn: "Mergi la autentificare",
           },
@@ -569,7 +566,8 @@ const resources = {
           },
           errors: {
             emailInUse: "Există deja un cont cu acest email.",
-            generic: "Contul nu a putut fi creat momentan. Încearcă din nou.",
+            generic:
+              "Codul de verificare nu a putut fi trimis momentan. Încearcă din nou.",
           },
           emailCheck: {
             checking: "Se verifică disponibilitatea emailului\u2026",
@@ -579,8 +577,7 @@ const resources = {
           mfa: {
             title: "Verifică-ți emailul",
             description:
-              "Am trimis un cod de verificare din 6 cifre la {{email}}. Introdu-l mai jos pentru a finaliza crearea contului.",
-            hint: "Cod preview: {{code}}",
+              "Am trimis un cod de verificare din 6 cifre la {{email}}. Introdu-l mai jos, împreună cu numele tău și o parolă, pentru a finaliza crearea contului.",
             fields: {
               code: "Cod de verificare",
             },
@@ -592,7 +589,7 @@ const resources = {
               verifying: "Se verifică…",
               resend: "Retrimite codul",
               resending: "Se trimite un cod nou…",
-              editDetails: "Editează datele contului",
+              useDifferentEmail: "Folosește alt email",
             },
             validation: {
               codeRequired: "Introdu codul din 6 cifre trimis pe email.",

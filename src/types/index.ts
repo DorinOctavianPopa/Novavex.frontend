@@ -17,7 +17,8 @@ export type {
   SecurityConfig,
   SignInErrorCode,
   SignInRequest,
+  SignUpEmailRequest,
   SignUpErrorCode,
-  SignUpRequest,
+  SignUpVerificationRequest,
   SupportLinks,
 } from "@/types/app";

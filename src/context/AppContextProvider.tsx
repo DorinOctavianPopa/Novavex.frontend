@@ -11,7 +11,8 @@ import type {
   AuthSession,
   MfaChallenge,
   SignInRequest,
-  SignUpRequest,
+  SignUpEmailRequest,
+  SignUpVerificationRequest,
 } from "@/types";
 
 const simulatedNetworkDelayMs = 900;
@@ -24,9 +25,7 @@ interface PendingMfaVerification {
 }
 
 interface PendingSignUpVerification {
-  readonly fullName: string;
   readonly email: string;
-  readonly password: string;
   readonly code: string;
 }
 
@@ -72,7 +71,6 @@ export function AppContextProvider({
       email: normalizedEmail,
       expiresAt: new Date(Date.now() + mfaCodeTtlMs).toISOString(),
       codeLength: mfaCodeLength,
-      previewCode: code,
     });
   }, []);
 
@@ -123,7 +121,7 @@ export function AppContextProvider({
 
     pendingVerificationRef.current = { ...pending, code };
     setMfaChallenge((current) =>
-      current ? { ...current, expiresAt, previewCode: code } : current,
+      current ? { ...current, expiresAt } : current,
     );
   }, []);
 
@@ -132,38 +130,33 @@ export function AppContextProvider({
     setMfaChallenge(null);
   }, []);
 
-  const signUp = useCallback(
-    async ({ fullName, email, password }: SignUpRequest) => {
-      await delay(simulatedNetworkDelayMs);
+  const signUp = useCallback(async ({ email }: SignUpEmailRequest) => {
+    await delay(simulatedNetworkDelayMs);
 
-      if (
-        email.trim().toLowerCase() ===
-        demoSignInCredentials.email.toLowerCase()
-      ) {
-        throw new SignUpError("email-in-use");
-      }
+    if (
+      email.trim().toLowerCase() === demoSignInCredentials.email.toLowerCase()
+    ) {
+      throw new SignUpError("email-in-use");
+    }
 
-      const normalizedEmail = email.trim();
-      const code = generateMfaCode();
+    const normalizedEmail = email.trim();
+    const code = generateMfaCode();
 
-      pendingSignUpVerificationRef.current = {
-        fullName,
-        email: normalizedEmail,
-        password,
-        code,
-      };
-      setSignUpMfaChallenge({
-        email: normalizedEmail,
-        expiresAt: new Date(Date.now() + mfaCodeTtlMs).toISOString(),
-        codeLength: mfaCodeLength,
-        previewCode: code,
-      });
-    },
-    [],
-  );
+    pendingSignUpVerificationRef.current = {
+      email: normalizedEmail,
+      code,
+    };
+    setSignUpMfaChallenge({
+      email: normalizedEmail,
+      expiresAt: new Date(Date.now() + mfaCodeTtlMs).toISOString(),
+      codeLength: mfaCodeLength,
+    });
+  }, []);
 
   const verifySignUpMfaCode = useCallback(
-    async (code: string) => {
+    // Demo-only: no backend persists the account, so `fullName`/`password` on
+    // the request are accepted but not stored anywhere beyond this step.
+    async (request: SignUpVerificationRequest) => {
       await delay(simulatedNetworkDelayMs);
 
       const pending = pendingSignUpVerificationRef.current;
@@ -178,7 +171,7 @@ export function AppContextProvider({
         throw new MfaError("expired-code");
       }
 
-      if (code.trim() !== pending.code) {
+      if (request.code.trim() !== pending.code) {
         throw new MfaError("invalid-code");
       }
 
@@ -202,7 +195,7 @@ export function AppContextProvider({
 
     pendingSignUpVerificationRef.current = { ...pending, code };
     setSignUpMfaChallenge((current) =>
-      current ? { ...current, expiresAt, previewCode: code } : current,
+      current ? { ...current, expiresAt } : current,
     );
   }, []);
 

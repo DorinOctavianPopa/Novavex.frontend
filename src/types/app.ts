@@ -77,8 +77,6 @@ export interface MfaChallenge {
   readonly email: string;
   readonly expiresAt: string;
   readonly codeLength: number;
-  /** Demo-only: no email provider is wired up, so the code is surfaced for preview access. */
-  readonly previewCode: string;
 }
 
 export type SignUpErrorCode = "email-in-use";
@@ -93,9 +91,13 @@ export class SignUpError extends Error {
   }
 }
 
-export interface SignUpRequest {
-  readonly fullName: string;
+export interface SignUpEmailRequest {
   readonly email: string;
+}
+
+export interface SignUpVerificationRequest {
+  readonly code: string;
+  readonly fullName: string;
   readonly password: string;
 }
 
@@ -107,8 +109,10 @@ export interface AppContextValue extends AppConfig {
   readonly resendMfaCode: () => Promise<void>;
   readonly cancelMfaChallenge: () => void;
   readonly signUpMfaChallenge: MfaChallenge | null;
-  readonly signUp: (request: SignUpRequest) => Promise<void>;
-  readonly verifySignUpMfaCode: (code: string) => Promise<void>;
+  readonly signUp: (request: SignUpEmailRequest) => Promise<void>;
+  readonly verifySignUpMfaCode: (
+    request: SignUpVerificationRequest,
+  ) => Promise<void>;
   readonly resendSignUpMfaCode: () => Promise<void>;
   readonly cancelSignUpMfaChallenge: () => void;
   readonly signOut: () => void;

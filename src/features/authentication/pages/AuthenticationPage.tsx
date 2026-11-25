@@ -1,15 +1,33 @@
 import { useId, useState } from "react";
 
-import concept1Image from "@/assets/concept1.png";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import CircularProgress from "@mui/material/CircularProgress";
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import InputLabel from "@mui/material/InputLabel";
+import Link from "@mui/material/Link";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import type { SelectChangeEvent } from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+
 import { demoSignInCredentials } from "@/config/appConfig";
 import { useAppContext } from "@/context";
+import { AuthPageShell } from "@/features/authentication/components";
 import { MfaError, SignInError } from "@/types";
 import type { MfaChallenge, SignInRequest } from "@/types";
 import type { TFunction } from "i18next";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
-import "./AuthenticationPage.css";
 
 const rememberedEmailStorageKey = "novavex.auth.rememberedEmail";
 
@@ -86,11 +104,12 @@ export function AuthenticationPage({
   onResendMfaCode,
   onCancelMfaChallenge,
 }: Readonly<AuthenticationPageProps>) {
-  const { name, summary, supportLinks } = useAppContext();
+  const { summary, supportLinks } = useAppContext();
   const { i18n, t } = useTranslation();
   const emailId = useId();
   const passwordId = useId();
   const codeId = useId();
+  const cardTitleId = useId();
   const activeLanguage = (i18n.resolvedLanguage ?? i18n.language)
     .toLowerCase()
     .startsWith("ro")
@@ -216,317 +235,304 @@ export function AuthenticationPage({
     }));
   }
 
+  function handleLanguageChange(event: SelectChangeEvent) {
+    void i18n.changeLanguage(event.target.value);
+  }
+
+  const languageSwitcher = (
+    <FormControl size="small" sx={{ minWidth: "9rem" }}>
+      <InputLabel id={`${emailId}-language-label`}>
+        {t("language.label")}
+      </InputLabel>
+      <Select
+        labelId={`${emailId}-language-label`}
+        label={t("language.label")}
+        value={activeLanguage}
+        onChange={handleLanguageChange}
+      >
+        <MenuItem value="en">{t("language.options.en")}</MenuItem>
+        <MenuItem value="ro">{t("language.options.ro")}</MenuItem>
+      </Select>
+    </FormControl>
+  );
+
+  const footer = (
+    <Stack
+      direction="row"
+      spacing={2.5}
+      sx={{
+        justifyContent: "center",
+        flexWrap: "wrap",
+        pt: 2,
+        borderTop: "1px solid",
+        borderColor: "divider",
+      }}
+    >
+      <Link component={RouterLink} to="/support" underline="hover">
+        {t("auth.signIn.footer.support")}
+      </Link>
+      <Link component={RouterLink} to="/privacy" underline="hover">
+        {t("auth.signIn.footer.privacy")}
+      </Link>
+      <Link
+        href={supportLinks.terms}
+        target="_blank"
+        rel="noopener noreferrer"
+        underline="hover"
+      >
+        {t("auth.signIn.footer.terms")}
+      </Link>
+    </Stack>
+  );
+
   return (
-    <main className="authentication-page">
-      <section className="authentication-shell">
-        <div className="authentication-shell__intro authentication-panel">
-          <div className="authentication-shell__topbar">
-            <p className="authentication-shell__eyebrow">
-              {t("auth.signIn.eyebrow")}
-            </p>
-            <label className="authentication-language-switcher">
-              <span>{t("language.label")}</span>
-              <select
-                value={activeLanguage}
-                onChange={(event) => {
-                  void i18n.changeLanguage(event.target.value);
-                }}
-              >
-                <option value="en">{t("language.options.en")}</option>
-                <option value="ro">{t("language.options.ro")}</option>
-              </select>
-            </label>
-          </div>
-          <div className="authentication-shell__copy">
-            <img
-              className="authentication-shell__logo"
-              src={concept1Image}
-              alt="Novavex logo"
+    <AuthPageShell
+      eyebrow={t("auth.signIn.eyebrow")}
+      topbarExtra={languageSwitcher}
+      subtitle={t("auth.signIn.subtitle", { summary })}
+      highlights={[
+        t("auth.signIn.highlights.security"),
+        t("auth.signIn.highlights.access"),
+        t("auth.signIn.highlights.support"),
+      ]}
+      cardTitleId={cardTitleId}
+      footer={footer}
+    >
+      {mfaChallenge ? (
+        <>
+          <Stack spacing={1}>
+            <Typography id={cardTitleId} variant="h5" component="h2">
+              {t("auth.signIn.mfa.title")}
+            </Typography>
+            <Typography color="text.secondary">
+              {t("auth.signIn.mfa.description", {
+                email: mfaChallenge.email,
+              })}
+            </Typography>
+          </Stack>
+
+          <Box
+            component="form"
+            onSubmit={handleVerifyCode}
+            noValidate
+            sx={{ display: "grid", gap: 3 }}
+          >
+            <TextField
+              id={codeId}
+              name="code"
+              label={t("auth.signIn.mfa.fields.code")}
+              type="text"
+              autoComplete="one-time-code"
+              slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 6 } }}
+              fullWidth
+              value={code}
+              onChange={(event) => {
+                setCode(event.target.value.replace(/\D/g, "").slice(0, 6));
+              }}
+              onBlur={() => {
+                setCodeTouched(true);
+              }}
+              error={codeTouched && Boolean(codeError)}
+              helperText={codeTouched ? codeError : undefined}
+              disabled={isVerifying}
+              placeholder={t("auth.signIn.mfa.placeholders.code")}
             />
-            <h1>{name}</h1>
-            <p>{t("auth.signIn.subtitle", { summary })}</p>
-          </div>
-          <ul className="authentication-highlights">
-            <li>{t("auth.signIn.highlights.security")}</li>
-            <li>{t("auth.signIn.highlights.access")}</li>
-            <li>{t("auth.signIn.highlights.support")}</li>
-          </ul>
-        </div>
 
-        <section
-          className="authentication-panel authentication-card"
-          aria-labelledby="sign-in-title"
-        >
-          {mfaChallenge ? (
-            <>
-              <div className="authentication-card__header">
-                <h2 id="sign-in-title">{t("auth.signIn.mfa.title")}</h2>
-                <p>
-                  {t("auth.signIn.mfa.description", {
-                    email: mfaChallenge.email,
-                  })}
-                </p>
-                <p className="authentication-card__hint">
-                  {t("auth.signIn.mfa.hint", {
-                    code: mfaChallenge.previewCode,
-                  })}
-                </p>
-              </div>
+            {verifyError ? <Alert severity="error">{verifyError}</Alert> : null}
+            {resendMessage ? (
+              <Alert severity="success">{resendMessage}</Alert>
+            ) : null}
 
-              <form
-                className="authentication-form"
-                onSubmit={handleVerifyCode}
-                noValidate
-              >
-                <label className="authentication-field" htmlFor={codeId}>
-                  <span>{t("auth.signIn.mfa.fields.code")}</span>
-                  <input
-                    id={codeId}
-                    name="code"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                    value={code}
-                    onChange={(event) => {
-                      setCode(event.target.value.replace(/\D/g, "").slice(0, 6));
-                    }}
-                    onBlur={() => {
-                      setCodeTouched(true);
-                    }}
-                    aria-invalid={codeTouched && Boolean(codeError)}
-                    aria-describedby={
-                      codeTouched && codeError ? `${codeId}-error` : undefined
-                    }
-                    disabled={isVerifying}
-                    placeholder={t("auth.signIn.mfa.placeholders.code")}
-                  />
-                  {codeTouched && codeError ? (
-                    <span
-                      id={`${codeId}-error`}
-                      className="authentication-field__error"
-                      role="alert"
-                    >
-                      {codeError}
-                    </span>
-                  ) : null}
-                </label>
-
-                {verifyError ? (
-                  <p className="authentication-form__error" role="alert">
-                    {verifyError}
-                  </p>
-                ) : null}
-
-                {resendMessage ? (
-                  <p className="authentication-form__success" role="status">
-                    {resendMessage}
-                  </p>
-                ) : null}
-
-                <button
-                  type="submit"
-                  className="authentication-form__submit"
-                  disabled={isVerifying}
-                >
-                  {isVerifying
-                    ? t("auth.signIn.mfa.actions.verifying")
-                    : t("auth.signIn.mfa.actions.verify")}
-                </button>
-              </form>
-
-              <div className="authentication-form__meta">
-                <button
-                  type="button"
-                  className="authentication-link-button"
-                  onClick={() => {
-                    void handleResendCode();
-                  }}
-                  disabled={isResending || isVerifying}
-                >
-                  {isResending
-                    ? t("auth.signIn.mfa.actions.resending")
-                    : t("auth.signIn.mfa.actions.resend")}
-                </button>
-                <button
-                  type="button"
-                  className="authentication-link-button"
-                  onClick={handleCancelMfa}
-                  disabled={isVerifying}
-                >
-                  {t("auth.signIn.mfa.actions.useDifferentAccount")}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="authentication-card__header">
-                <h2 id="sign-in-title">{t("auth.signIn.title")}</h2>
-                <p>{t("auth.signIn.description")}</p>
-                <p className="authentication-card__hint">
-                  {t("auth.signIn.hint", demoSignInCredentials)}
-                </p>
-              </div>
-
-              <form
-                className="authentication-form"
-                onSubmit={handleSubmit}
-                noValidate
-              >
-                <label className="authentication-field" htmlFor={emailId}>
-                  <span>{t("auth.signIn.fields.email")}</span>
-                  <input
-                    id={emailId}
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value);
-                    }}
-                    onBlur={() => {
-                      markTouched("email");
-                    }}
-                    aria-invalid={touchedFields.email && Boolean(errors.email)}
-                    aria-describedby={
-                      touchedFields.email && errors.email
-                        ? `${emailId}-error`
-                        : undefined
-                    }
-                    disabled={isSubmitting}
-                    placeholder={t("auth.signIn.placeholders.email")}
-                  />
-                  {touchedFields.email && errors.email ? (
-                    <span
-                      id={`${emailId}-error`}
-                      className="authentication-field__error"
-                      role="alert"
-                    >
-                      {errors.email}
-                    </span>
-                  ) : null}
-                </label>
-
-                <label className="authentication-field" htmlFor={passwordId}>
-                  <span>{t("auth.signIn.fields.password")}</span>
-                  <div className="authentication-password-field">
-                    <input
-                      id={passwordId}
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(event) => {
-                        setPassword(event.target.value);
-                      }}
-                      onBlur={() => {
-                        markTouched("password");
-                      }}
-                      aria-invalid={
-                        touchedFields.password && Boolean(errors.password)
-                      }
-                      aria-describedby={
-                        touchedFields.password && errors.password
-                          ? `${passwordId}-error`
-                          : undefined
-                      }
-                      disabled={isSubmitting}
-                      placeholder={t("auth.signIn.placeholders.password")}
-                    />
-                    <button
-                      type="button"
-                      className="authentication-password-field__toggle"
-                      onClick={() => {
-                        setShowPassword((current) => !current);
-                      }}
-                      aria-label={
-                        showPassword
-                          ? t("auth.signIn.actions.hidePassword")
-                          : t("auth.signIn.actions.showPassword")
-                      }
-                      aria-pressed={showPassword}
-                      disabled={isSubmitting}
-                    >
-                      {showPassword
-                        ? t("auth.signIn.actions.hidePassword")
-                        : t("auth.signIn.actions.showPassword")}
-                    </button>
-                  </div>
-                  {touchedFields.password && errors.password ? (
-                    <span
-                      id={`${passwordId}-error`}
-                      className="authentication-field__error"
-                      role="alert"
-                    >
-                      {errors.password}
-                    </span>
-                  ) : null}
-                </label>
-
-                <div className="authentication-form__meta">
-                  <label className="authentication-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(event) => {
-                        setRememberMe(event.target.checked);
-                      }}
-                      disabled={isSubmitting}
-                    />
-                    <span>{t("auth.signIn.actions.rememberMe")}</span>
-                  </label>
-                  <a
-                    href={supportLinks.forgotPassword}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {t("auth.signIn.actions.forgotPassword")}
-                  </a>
-                </div>
-
-                {submitError ? (
-                  <p className="authentication-form__error" role="alert">
-                    {submitError}
-                  </p>
-                ) : null}
-
-                <button
-                  type="submit"
-                  className="authentication-form__submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting
-                    ? t("auth.signIn.actions.signingIn")
-                    : t("auth.signIn.actions.signIn")}
-                </button>
-              </form>
-
-              <p className="authentication-card__signup">
-                {t("auth.signIn.signUpPrompt")}{" "}
-                <button
-                  type="button"
-                  className="authentication-link-button"
-                  onClick={onNavigateToCreateAccount}
-                >
-                  {t("auth.signIn.actions.createAccount")}
-                </button>
-              </p>
-            </>
-          )}
-
-          <footer className="authentication-card__footer">
-            <Link to="/support">{t("auth.signIn.footer.support")}</Link>
-            <Link to="/privacy">{t("auth.signIn.footer.privacy")}</Link>
-            <a
-              href={supportLinks.terms}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={isVerifying}
+              startIcon={
+                isVerifying ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : undefined
+              }
             >
-              {t("auth.signIn.footer.terms")}
-            </a>
-          </footer>
-        </section>
-      </section>
-    </main>
+              {isVerifying
+                ? t("auth.signIn.mfa.actions.verifying")
+                : t("auth.signIn.mfa.actions.verify")}
+            </Button>
+          </Box>
+
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: "space-between", flexWrap: "wrap" }}
+          >
+            <Button
+              variant="text"
+              onClick={() => {
+                void handleResendCode();
+              }}
+              disabled={isResending || isVerifying}
+            >
+              {isResending
+                ? t("auth.signIn.mfa.actions.resending")
+                : t("auth.signIn.mfa.actions.resend")}
+            </Button>
+            <Button
+              variant="text"
+              onClick={handleCancelMfa}
+              disabled={isVerifying}
+            >
+              {t("auth.signIn.mfa.actions.useDifferentAccount")}
+            </Button>
+          </Stack>
+        </>
+      ) : (
+        <>
+          <Stack spacing={1}>
+            <Typography id={cardTitleId} variant="h5" component="h2">
+              {t("auth.signIn.title")}
+            </Typography>
+            <Typography color="text.secondary">
+              {t("auth.signIn.description")}
+            </Typography>
+            <Alert severity="info" variant="outlined">
+              {t("auth.signIn.hint", demoSignInCredentials)}
+            </Alert>
+          </Stack>
+
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+            sx={{ display: "grid", gap: 3 }}
+          >
+            <TextField
+              id={emailId}
+              name="email"
+              label={t("auth.signIn.fields.email")}
+              type="email"
+              autoComplete="email"
+              fullWidth
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+              }}
+              onBlur={() => {
+                markTouched("email");
+              }}
+              error={touchedFields.email && Boolean(errors.email)}
+              helperText={touchedFields.email ? errors.email : undefined}
+              disabled={isSubmitting}
+              placeholder={t("auth.signIn.placeholders.email")}
+            />
+
+            <TextField
+              id={passwordId}
+              name="password"
+              label={t("auth.signIn.fields.password")}
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              fullWidth
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+              }}
+              onBlur={() => {
+                markTouched("password");
+              }}
+              error={touchedFields.password && Boolean(errors.password)}
+              helperText={touchedFields.password ? errors.password : undefined}
+              disabled={isSubmitting}
+              placeholder={t("auth.signIn.placeholders.password")}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label={
+                          showPassword
+                            ? t("auth.signIn.actions.hidePassword")
+                            : t("auth.signIn.actions.showPassword")
+                        }
+                        aria-pressed={showPassword}
+                        onClick={() => {
+                          setShowPassword((current) => !current);
+                        }}
+                        disabled={isSubmitting}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={rememberMe}
+                    onChange={(event) => {
+                      setRememberMe(event.target.checked);
+                    }}
+                    disabled={isSubmitting}
+                  />
+                }
+                label={t("auth.signIn.actions.rememberMe")}
+              />
+              <Link
+                href={supportLinks.forgotPassword}
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+              >
+                {t("auth.signIn.actions.forgotPassword")}
+              </Link>
+            </Stack>
+
+            {submitError ? <Alert severity="error">{submitError}</Alert> : null}
+
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={isSubmitting}
+              startIcon={
+                isSubmitting ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : undefined
+              }
+            >
+              {isSubmitting
+                ? t("auth.signIn.actions.signingIn")
+                : t("auth.signIn.actions.signIn")}
+            </Button>
+          </Box>
+
+          <Typography sx={{ textAlign: "center" }}>
+            {t("auth.signIn.signUpPrompt")}{" "}
+            <Link
+              component="button"
+              type="button"
+              underline="hover"
+              onClick={onNavigateToCreateAccount}
+            >
+              {t("auth.signIn.actions.createAccount")}
+            </Link>
+          </Typography>
+        </>
+      )}
+    </AuthPageShell>
   );
 }
