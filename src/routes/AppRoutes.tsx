@@ -11,36 +11,14 @@ import {
 import { DashboardPage } from "@/features/dashboard";
 import { InventoryModulePage } from "@/features/inventory";
 import { AccountingPage } from "@/features/accounting";
-import { isAuthorized } from "@/services";
+import {
+  accountingPolicy,
+  dashboardPolicy,
+  inventoryReadPolicy,
+  isAuthorized,
+} from "@/services";
 import type { AuthSession } from "@/types";
 import { useTranslation } from "react-i18next";
-
-const dashboardPolicy = {
-  anyRoles: [
-    "super_admin",
-    "cto",
-    "finance_manager",
-    "senior_accountant",
-    "junior_accountant",
-    "inventory_manager",
-  ] as const,
-  allScopes: ["dashboard:read"] as const,
-};
-
-const inventoryReadPolicy = {
-  anyRoles: ["super_admin", "cto", "inventory_manager"] as const,
-  allScopes: ["inventory:read"] as const,
-};
-
-const accountingPolicy = {
-  anyRoles: [
-    "super_admin",
-    "cto",
-    "finance_manager",
-    "senior_accountant",
-    "junior_accountant",
-  ] as const,
-};
 
 function AccessDeniedView() {
   const { t } = useTranslation();

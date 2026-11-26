@@ -343,6 +343,46 @@ const resources = {
             "Strict TypeScript + path aliases",
           ],
         },
+        sidenav: {
+          ariaLabel: "Dashboard navigation",
+          noRoles: "No roles granted yet",
+          nav: {
+            dashboard: "Dashboard",
+            inventory: "Inventory",
+            accounting: "Accounting",
+            crm: "CRM",
+            support: "Support",
+            privacy: "Privacy",
+            signOut: "Sign out",
+          },
+        },
+        stats: {
+          modules: {
+            label: "Feature modules",
+            helper: "{{ready}} ready · {{planned}} planned",
+          },
+          scopes: {
+            label: "Granted scopes",
+            helper: "Scopes available to this session",
+          },
+          session: {
+            label: "Session TTL",
+          },
+          roles: {
+            label: "Assigned roles",
+            helperEmpty: "No roles granted yet",
+          },
+        },
+        charts: {
+          moduleStatus: {
+            title: "Module status breakdown",
+            description: "Ready vs. planned feature modules.",
+          },
+          activity: {
+            title: "Access activity",
+            description: "Representative trend (placeholder, not live data).",
+          },
+        },
         security: {
           title: "Enterprise security baseline",
           authProvider: "Auth provider:",
@@ -734,6 +774,47 @@ const resources = {
             "Principii Bulletproof React",
             "TypeScript strict + aliasuri de căi",
           ],
+        },
+        sidenav: {
+          ariaLabel: "Navigare tablou de bord",
+          noRoles: "Niciun rol atribuit încă",
+          nav: {
+            dashboard: "Tablou de bord",
+            inventory: "Inventar",
+            accounting: "Contabilitate",
+            crm: "CRM",
+            support: "Suport",
+            privacy: "Confidențialitate",
+            signOut: "Deconectare",
+          },
+        },
+        stats: {
+          modules: {
+            label: "Module",
+            helper: "{{ready}} gata · {{planned}} planificate",
+          },
+          scopes: {
+            label: "Permisiuni acordate",
+            helper: "Permisiuni disponibile pentru această sesiune",
+          },
+          session: {
+            label: "TTL sesiune",
+          },
+          roles: {
+            label: "Roluri atribuite",
+            helperEmpty: "Niciun rol atribuit încă",
+          },
+        },
+        charts: {
+          moduleStatus: {
+            title: "Starea modulelor",
+            description: "Module gata vs. planificate.",
+          },
+          activity: {
+            title: "Activitate acces",
+            description:
+              "Tendință reprezentativă (exemplu, nu date live).",
+          },
         },
         security: {
           title: "Bază de securitate enterprise",
