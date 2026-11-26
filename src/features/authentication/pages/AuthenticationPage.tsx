@@ -20,7 +20,6 @@ import Typography from "@mui/material/Typography";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-import { demoSignInCredentials } from "@/config/appConfig";
 import { useAppContext } from "@/context";
 import { AuthPageShell } from "@/features/authentication/components";
 import { MfaError, SignInError } from "@/types";
@@ -395,9 +394,6 @@ export function AuthenticationPage({
             <Typography color="text.secondary">
               {t("auth.signIn.description")}
             </Typography>
-            <Alert severity="info" variant="outlined">
-              {t("auth.signIn.hint", demoSignInCredentials)}
-            </Alert>
           </Stack>
 
           <Box

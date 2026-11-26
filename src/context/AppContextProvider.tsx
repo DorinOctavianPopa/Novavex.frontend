@@ -1,12 +1,15 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { AppContext } from "@/context/AppContext";
+import { appConfig } from "@/config/appConfig";
 import {
-  appConfig,
-  demoSession,
-  demoSignInCredentials,
-} from "@/config/appConfig";
-import { MfaError, SignInError, SignUpError } from "@/types";
+  buildSessionFromAccessToken,
+  completeSignUp,
+  requestSignInChallenge,
+  requestSignUpChallenge,
+  verifySignInCode,
+} from "@/features/authentication/api/loginApi";
+import { MfaError, SignInError } from "@/types";
 import type {
   AuthSession,
   MfaChallenge,
@@ -15,28 +18,19 @@ import type {
   SignUpVerificationRequest,
 } from "@/types";
 
-const simulatedNetworkDelayMs = 900;
 const mfaCodeLength = 6;
-const mfaCodeTtlMs = 5 * 60 * 1000;
 
-interface PendingMfaVerification {
+interface PendingSignIn {
   readonly email: string;
-  readonly code: string;
+  readonly password: string;
+  readonly challengeId: string;
+  readonly expiresAt: string;
 }
 
-interface PendingSignUpVerification {
+interface PendingSignUp {
   readonly email: string;
-  readonly code: string;
-}
-
-function delay(durationMs: number) {
-  return new Promise((resolve) => {
-    globalThis.setTimeout(resolve, durationMs);
-  });
-}
-
-function generateMfaCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  readonly challengeId: string;
+  readonly expiresAt: string;
 }
 
 export function AppContextProvider({
@@ -46,168 +40,165 @@ export function AppContextProvider({
 }>) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallenge | null>(null);
-  const pendingVerificationRef = useRef<PendingMfaVerification | null>(null);
+  const pendingSignInRef = useRef<PendingSignIn | null>(null);
   const [signUpMfaChallenge, setSignUpMfaChallenge] =
     useState<MfaChallenge | null>(null);
-  const pendingSignUpVerificationRef =
-    useRef<PendingSignUpVerification | null>(null);
+  const pendingSignUpRef = useRef<PendingSignUp | null>(null);
 
   const signIn = useCallback(async ({ email, password }: SignInRequest) => {
-    await delay(simulatedNetworkDelayMs);
+    const normalizedEmail = email.trim();
+    const challenge = await requestSignInChallenge(normalizedEmail, password);
 
-    if (
-      email.trim().toLowerCase() !==
-        demoSignInCredentials.email.toLowerCase() ||
-      password !== demoSignInCredentials.password
-    ) {
+    if (!challenge) {
       throw new SignInError("invalid-credentials");
     }
 
-    const normalizedEmail = email.trim();
-    const code = generateMfaCode();
-
-    pendingVerificationRef.current = { email: normalizedEmail, code };
+    pendingSignInRef.current = {
+      email: normalizedEmail,
+      password,
+      challengeId: challenge.challengeId,
+      expiresAt: challenge.expiresAt,
+    };
     setMfaChallenge({
       email: normalizedEmail,
-      expiresAt: new Date(Date.now() + mfaCodeTtlMs).toISOString(),
+      expiresAt: challenge.expiresAt,
       codeLength: mfaCodeLength,
     });
   }, []);
 
-  const verifyMfaCode = useCallback(
-    async (code: string) => {
-      await delay(simulatedNetworkDelayMs);
+  const verifyMfaCode = useCallback(async (code: string) => {
+    const pending = pendingSignInRef.current;
 
-      const pending = pendingVerificationRef.current;
+    if (!pending) {
+      throw new MfaError("expired-code");
+    }
 
-      if (!pending || !mfaChallenge) {
-        throw new MfaError("expired-code");
-      }
-
-      if (new Date(mfaChallenge.expiresAt).getTime() < Date.now()) {
-        pendingVerificationRef.current = null;
-        setMfaChallenge(null);
-        throw new MfaError("expired-code");
-      }
-
-      if (code.trim() !== pending.code) {
-        throw new MfaError("invalid-code");
-      }
-
-      setSession({
-        ...demoSession,
-        user: {
-          ...demoSession.user,
-          email: pending.email,
-        },
-      });
-      pendingVerificationRef.current = null;
+    if (new Date(pending.expiresAt).getTime() < Date.now()) {
+      pendingSignInRef.current = null;
       setMfaChallenge(null);
-    },
-    [mfaChallenge],
-  );
+      throw new MfaError("expired-code");
+    }
+
+    const token = await verifySignInCode(pending.challengeId, code.trim());
+
+    if (!token) {
+      throw new MfaError("invalid-code");
+    }
+
+    setSession(buildSessionFromAccessToken(token.accessToken, token.expiresAt));
+    pendingSignInRef.current = null;
+    setMfaChallenge(null);
+  }, []);
 
   const resendMfaCode = useCallback(async () => {
-    const pending = pendingVerificationRef.current;
+    const pending = pendingSignInRef.current;
 
     if (!pending) {
       return;
     }
 
-    await delay(simulatedNetworkDelayMs);
+    const challenge = await requestSignInChallenge(
+      pending.email,
+      pending.password,
+    );
 
-    const code = generateMfaCode();
-    const expiresAt = new Date(Date.now() + mfaCodeTtlMs).toISOString();
+    if (!challenge) {
+      // Credentials stopped being valid between the original attempt and this resend.
+      pendingSignInRef.current = null;
+      setMfaChallenge(null);
+      throw new SignInError("invalid-credentials");
+    }
 
-    pendingVerificationRef.current = { ...pending, code };
+    pendingSignInRef.current = {
+      ...pending,
+      challengeId: challenge.challengeId,
+      expiresAt: challenge.expiresAt,
+    };
     setMfaChallenge((current) =>
-      current ? { ...current, expiresAt } : current,
+      current ? { ...current, expiresAt: challenge.expiresAt } : current,
     );
   }, []);
 
   const cancelMfaChallenge = useCallback(() => {
-    pendingVerificationRef.current = null;
+    pendingSignInRef.current = null;
     setMfaChallenge(null);
   }, []);
 
   const signUp = useCallback(async ({ email }: SignUpEmailRequest) => {
-    await delay(simulatedNetworkDelayMs);
-
-    if (
-      email.trim().toLowerCase() === demoSignInCredentials.email.toLowerCase()
-    ) {
-      throw new SignUpError("email-in-use");
-    }
-
     const normalizedEmail = email.trim();
-    const code = generateMfaCode();
+    const challenge = await requestSignUpChallenge(normalizedEmail);
 
-    pendingSignUpVerificationRef.current = {
+    pendingSignUpRef.current = {
       email: normalizedEmail,
-      code,
+      challengeId: challenge.challengeId,
+      expiresAt: challenge.expiresAt,
     };
     setSignUpMfaChallenge({
       email: normalizedEmail,
-      expiresAt: new Date(Date.now() + mfaCodeTtlMs).toISOString(),
+      expiresAt: challenge.expiresAt,
       codeLength: mfaCodeLength,
     });
   }, []);
 
   const verifySignUpMfaCode = useCallback(
-    // Demo-only: no backend persists the account, so `fullName`/`password` on
-    // the request are accepted but not stored anywhere beyond this step.
     async (request: SignUpVerificationRequest) => {
-      await delay(simulatedNetworkDelayMs);
+      const pending = pendingSignUpRef.current;
 
-      const pending = pendingSignUpVerificationRef.current;
-
-      if (!pending || !signUpMfaChallenge) {
+      if (!pending) {
         throw new MfaError("expired-code");
       }
 
-      if (new Date(signUpMfaChallenge.expiresAt).getTime() < Date.now()) {
-        pendingSignUpVerificationRef.current = null;
+      if (new Date(pending.expiresAt).getTime() < Date.now()) {
+        pendingSignUpRef.current = null;
         setSignUpMfaChallenge(null);
         throw new MfaError("expired-code");
       }
 
-      if (request.code.trim() !== pending.code) {
+      const completed = await completeSignUp({
+        challengeId: pending.challengeId,
+        code: request.code.trim(),
+        fullName: request.fullName.trim(),
+        password: request.password,
+      });
+
+      if (!completed) {
         throw new MfaError("invalid-code");
       }
 
-      pendingSignUpVerificationRef.current = null;
+      pendingSignUpRef.current = null;
       setSignUpMfaChallenge(null);
     },
-    [signUpMfaChallenge],
+    [],
   );
 
   const resendSignUpMfaCode = useCallback(async () => {
-    const pending = pendingSignUpVerificationRef.current;
+    const pending = pendingSignUpRef.current;
 
     if (!pending) {
       return;
     }
 
-    await delay(simulatedNetworkDelayMs);
+    const challenge = await requestSignUpChallenge(pending.email);
 
-    const code = generateMfaCode();
-    const expiresAt = new Date(Date.now() + mfaCodeTtlMs).toISOString();
-
-    pendingSignUpVerificationRef.current = { ...pending, code };
+    pendingSignUpRef.current = {
+      ...pending,
+      challengeId: challenge.challengeId,
+      expiresAt: challenge.expiresAt,
+    };
     setSignUpMfaChallenge((current) =>
-      current ? { ...current, expiresAt } : current,
+      current ? { ...current, expiresAt: challenge.expiresAt } : current,
     );
   }, []);
 
   const cancelSignUpMfaChallenge = useCallback(() => {
-    pendingSignUpVerificationRef.current = null;
+    pendingSignUpRef.current = null;
     setSignUpMfaChallenge(null);
   }, []);
 
   const signOut = useCallback(() => {
-    pendingVerificationRef.current = null;
+    pendingSignInRef.current = null;
     setMfaChallenge(null);
-    pendingSignUpVerificationRef.current = null;
+    pendingSignUpRef.current = null;
     setSignUpMfaChallenge(null);
     setSession(null);
   }, []);

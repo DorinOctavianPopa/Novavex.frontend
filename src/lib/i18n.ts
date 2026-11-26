@@ -53,7 +53,6 @@ const resources = {
             "{{summary}} Secure access for your workspace, operations, and ERP modules.",
           description:
             "Use your work email to continue to the operations dashboard.",
-          hint: "Preview access: {{email}} / {{password}}",
           fields: {
             email: "Work email",
             password: "Password",
@@ -442,7 +441,6 @@ const resources = {
           subtitle: "{{summary}}",
           description:
             "Folosește emailul de serviciu pentru a continua către dashboard-ul operațional.",
-          hint: "Acces preview: {{email}} / {{password}}",
           fields: {
             email: "Email de serviciu",
             password: "Parolă",

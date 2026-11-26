@@ -1,4 +1,4 @@
-import type { AppConfig, AuthSession, DirectoryNode } from "@/types";
+import type { AppConfig, DirectoryNode } from "@/types";
 
 export const appConfig: AppConfig = {
   name: "Novavex ERP",
@@ -20,30 +20,6 @@ export const appConfig: AppConfig = {
     authorization: {
       model: "rbac+abac",
       privilegedRoles: ["super_admin", "cto"],
-    },
-  },
-};
-
-export const demoSession: AuthSession = {
-  isAuthenticated: true,
-  accessToken: "demo-access-token",
-  accessTokenExpiresAt: "2026-09-18T19:06:00.000Z",
-  refreshTokenStorage: "httpOnly-cookie",
-  scopes: [
-    "dashboard:read",
-    "inventory:read",
-    "inventory:write",
-    "financial:read",
-  ],
-  user: {
-    id: "usr_demo_001",
-    email: "cto@novavex.example",
-    roles: ["cto"],
-    attributes: {
-      tenantId: "tenant_enterprise_01",
-      region: "eu",
-      department: "operations",
-      clearanceLevel: 4,
     },
   },
 };
@@ -100,8 +76,3 @@ export const directoryBlueprint: readonly DirectoryNode[] = [
     description: "Pure helper functions reused in multiple areas.",
   },
 ] as const;
-
-export const demoSignInCredentials = {
-  email: demoSession.user.email,
-  password: "preview-access",
-} as const;

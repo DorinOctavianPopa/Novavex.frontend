@@ -29,9 +29,20 @@ src/
 
 ## Authentication and authorization architecture
 
-- **Authentication** uses a hybrid token model aligned with OIDC/OAuth2:
-  - short-lived access token (15 minutes)
-  - refresh token stored as **httpOnly cookie**
+- **Authentication** calls the `NovavexWA` backend's `LoginController` (see
+  `src/features/authentication/api/loginApi.ts`):
+  - `POST /api/api/login` + `/api/api/login/verify` for sign-in (password check,
+    then an emailed 6-digit MFA code).
+  - `POST /api/api/login/users` + `/api/api/login/users/verify` for account
+    creation (emailed verification code, full name, and password).
+  - The backend double-prefixes routes (`UsePathBase("/api")` on top of the
+    controller's own `api/[controller]` route), so both `/api` segments are
+    required; see `NovavexWA.Tests/LoginServiceTests.cs`.
+  - The dev server proxies `/api` to the backend (`vite.config.ts`,
+    override with `VITE_BACKEND_URL`) since the backend does not configure CORS.
+  - The returned access token is a short-lived (15 minute) JWT; its claims
+    (roles, scopes, user attributes) are decoded client-side to populate the
+    session shown in the UI. There is currently no refresh-token endpoint.
 - **Authorization** is enforced via combined **RBAC + ABAC** policies:
   - RBAC with role checks (`super_admin`, `cto`, etc.)
   - ABAC with attribute checks (`department`, `region`, `tenantId`, `clearanceLevel`)

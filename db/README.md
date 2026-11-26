@@ -2,7 +2,9 @@
 
 `auth_schema.sql` is a PostgreSQL 14+ script that backs the login/authentication
 model documented in the root [README.md](../README.md#authentication-and-authorization-architecture)
-and currently simulated in-memory by [`AppContextProvider`](../src/context/AppContextProvider.tsx).
+and served by the `NovavexWA` backend's `LoginController`/`LoginService`, which
+[`AppContextProvider`](../src/context/AppContextProvider.tsx) calls through
+[`loginApi`](../src/features/authentication/api/loginApi.ts).
 
 ## Applying the script
 
