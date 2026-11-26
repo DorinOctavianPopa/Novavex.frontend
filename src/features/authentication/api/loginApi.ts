@@ -31,28 +31,67 @@ export interface AccessToken {
 // /api/api/login/users(/verify). See NovavexWA.Tests/LoginServiceTests.cs for confirmation.
 const loginEndpoint = import.meta.env.VITE_LOGIN_API_BASE_URL ?? "/api/login";
 
+function logAuthDebug(message: string, details?: unknown) {
+  if (import.meta.env.DEV) {
+    console.debug(`[auth] ${message}`, details ?? "");
+  }
+}
+
 async function postJson(path: string, body: unknown): Promise<Response> {
-  return fetch(`${loginEndpoint}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const route = path || "/";
+  const startedAt = performance.now();
+  logAuthDebug(`POST ${route} started`);
+
+  logAuthDebug(`login endpoint: ${loginEndpoint}${path}`);
+  try {
+    const response = await fetch(`${loginEndpoint}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    logAuthDebug(`POST ${route} completed`, {
+      status: response.status,
+      ok: response.ok,
+      durationMs: Math.round(performance.now() - startedAt),
+    });
+    return response;
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error(`[auth] POST ${route} failed`, error);
+    }
+    throw error;
+  }
 }
 
 async function parseJson<T>(response: Response): Promise<T | null> {
   if (response.status === 204) {
+    logAuthDebug("Response had no content", { status: response.status });
     return null;
   }
 
   try {
     return (await response.json()) as T;
-  } catch {
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn("[auth] Could not parse response JSON", {
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+        error,
+      });
+    }
     return null;
   }
 }
 
 function assertExpectedStatus(response: Response) {
   if (!response.ok && response.status !== 401) {
+    if (import.meta.env.DEV) {
+      console.error("[auth] Request returned an unexpected status", {
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
     throw new Error(`Login request failed with status ${response.status}`);
   }
 }
@@ -65,6 +104,7 @@ export async function requestSignInChallenge(
   const response = await postJson("", { email, password });
 
   if (response.status === 401) {
+    logAuthDebug("Sign-in challenge rejected", { status: response.status });
     return null;
   }
 
@@ -80,6 +120,7 @@ export async function verifySignInCode(
   const response = await postJson("/verify", { challengeId, code });
 
   if (response.status === 401) {
+    logAuthDebug("Sign-in code rejected", { status: response.status });
     return null;
   }
 
@@ -96,6 +137,9 @@ export async function requestSignUpChallenge(
   const body = await parseJson<ChallengeResponseBody>(response);
 
   if (!body) {
+    if (import.meta.env.DEV) {
+      console.error("[auth] Sign-up challenge response was empty");
+    }
     throw new Error("Sign-up challenge response was empty.");
   }
 
@@ -112,6 +156,7 @@ export async function completeSignUp(request: {
   const response = await postJson("/users/verify", request);
 
   if (response.status === 401) {
+    logAuthDebug("Sign-up verification rejected", { status: response.status });
     return false;
   }
 
