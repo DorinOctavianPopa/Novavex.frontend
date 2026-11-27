@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import BlockIcon from "@mui/icons-material/Block";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
@@ -39,12 +39,11 @@ export function DepartmentTree({
   onDeactivate,
 }: DepartmentTreeProps) {
   const { t } = useTranslation();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
-
-  // Expand the full tree whenever a new organization's departments load.
-  useEffect(() => {
-    setExpandedItems([...collectDepartmentIds(tree)]);
-  }, [tree]);
+  // Fully expanded on mount; the page remounts this component whenever a fresh
+  // tree is fetched, so no synchronization effect is needed.
+  const [expandedItems, setExpandedItems] = useState<string[]>(() => [
+    ...collectDepartmentIds(tree),
+  ]);
 
   function stop(event: React.MouseEvent) {
     event.stopPropagation();

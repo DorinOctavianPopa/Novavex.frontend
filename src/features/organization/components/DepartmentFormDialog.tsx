@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -16,7 +16,10 @@ export interface DepartmentFormDialogProps {
   readonly onCancel: () => void;
 }
 
-/** Name form shared by the "add department" and "rename department" flows. */
+/**
+ * Name form shared by the "add department" and "rename department" flows.
+ * Mount it only while open: the field seeds from `initialName` on mount.
+ */
 export function DepartmentFormDialog({
   open,
   title,
@@ -27,12 +30,6 @@ export function DepartmentFormDialog({
 }: DepartmentFormDialogProps) {
   const { t } = useTranslation();
   const [name, setName] = useState(initialName);
-
-  useEffect(() => {
-    if (open) {
-      setName(initialName);
-    }
-  }, [open, initialName]);
 
   const trimmedName = name.trim();
 

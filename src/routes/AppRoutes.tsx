@@ -11,11 +11,15 @@ import {
 import { DashboardPage } from "@/features/dashboard";
 import { InventoryModulePage } from "@/features/inventory";
 import { AccountingPage } from "@/features/accounting";
+import { OrganizationManagementPage } from "@/features/organization";
+import { UserManagementPage } from "@/features/userManagement";
 import {
   accountingPolicy,
   dashboardPolicy,
   inventoryReadPolicy,
   isAuthorized,
+  organizationReadPolicy,
+  userManagementReadPolicy,
 } from "@/services";
 import type { AuthSession } from "@/types";
 import { useTranslation } from "react-i18next";
@@ -127,6 +131,22 @@ export function AppRoutes() {
         element={
           <AuthorizedRoute session={session} policy={accountingPolicy}>
             <AccountingPage />
+          </AuthorizedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <AuthorizedRoute session={session} policy={userManagementReadPolicy}>
+            <UserManagementPage />
+          </AuthorizedRoute>
+        }
+      />
+      <Route
+        path="/organizations"
+        element={
+          <AuthorizedRoute session={session} policy={organizationReadPolicy}>
+            <OrganizationManagementPage />
           </AuthorizedRoute>
         }
       />

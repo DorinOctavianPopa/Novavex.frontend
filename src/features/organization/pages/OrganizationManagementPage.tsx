@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -48,19 +48,6 @@ type ConfirmState =
   | { readonly kind: "dept-deactivate"; readonly node: DepartmentNode }
   | null;
 
-/** Remounts the uncontrolled Grid whenever a new server page of rows arrives. */
-function useDataVersion(value: unknown) {
-  const versionRef = useRef(0);
-  const previousRef = useRef(value);
-
-  if (previousRef.current !== value) {
-    previousRef.current = value;
-    versionRef.current += 1;
-  }
-
-  return versionRef.current;
-}
-
 export function OrganizationManagementPage() {
   const { t } = useTranslation();
   const { session } = useAppContext();
@@ -83,35 +70,26 @@ export function OrganizationManagementPage() {
     isLoading,
     error: listError,
     refetch,
+    version: listVersion,
   } = useOrganizationsQuery({
     search: appliedSearch || undefined,
     status: statusFilter || undefined,
     page,
     pageSize: listPageSize,
   });
-  const gridVersion = useDataVersion(data);
+
+  // The clicked summary can go stale after a refetch; prefer the fresh row.
+  const currentOrg =
+    data?.items.find((item) => item.id === selectedOrg?.id) ?? selectedOrg;
 
   const {
     tree,
     isLoading: isTreeLoading,
     error: treeError,
     refetch: refetchTree,
-  } = useDepartmentTree(selectedOrg?.id ?? null);
+  } = useDepartmentTree(currentOrg?.id ?? null);
 
   const mutations = useOrganizationMutations();
-
-  // Keep the selected organization's summary fresh after list refetches.
-  useEffect(() => {
-    if (!data || !selectedOrg) {
-      return;
-    }
-
-    const updated = data.items.find((item) => item.id === selectedOrg.id);
-
-    if (updated && updated !== selectedOrg) {
-      setSelectedOrg(updated);
-    }
-  }, [data, selectedOrg]);
 
   const columns = useMemo<ReadonlyArray<GridColumn<OrganizationSummary>>>(
     () => [
@@ -174,8 +152,8 @@ export function OrganizationManagementPage() {
     region: string;
   }) {
     const succeeded =
-      orgDialog === "edit" && selectedOrg
-        ? await mutations.updateOrganization(selectedOrg.id, request)
+      orgDialog === "edit" && currentOrg
+        ? await mutations.updateOrganization(currentOrg.id, request)
         : await mutations.createOrganization(request);
 
     if (succeeded) {
@@ -185,17 +163,17 @@ export function OrganizationManagementPage() {
   }
 
   async function handleSaveDepartment(name: string) {
-    if (!selectedOrg || !deptDialog) {
+    if (!currentOrg || !deptDialog) {
       return;
     }
 
     const succeeded =
       deptDialog.mode === "create"
-        ? await mutations.createDepartment(selectedOrg.id, {
+        ? await mutations.createDepartment(currentOrg.id, {
             name,
             parentId: deptDialog.parentId ?? undefined,
           })
-        : await mutations.updateDepartment(selectedOrg.id, deptDialog.node.id, {
+        : await mutations.updateDepartment(currentOrg.id, deptDialog.node.id, {
             name,
           });
 
@@ -207,12 +185,12 @@ export function OrganizationManagementPage() {
   }
 
   async function handleMoveDepartment(parentId: string | null) {
-    if (!selectedOrg || !moveTarget) {
+    if (!currentOrg || !moveTarget) {
       return;
     }
 
     const succeeded = await mutations.updateDepartment(
-      selectedOrg.id,
+      currentOrg.id,
       moveTarget.id,
       { parentId },
     );
@@ -224,18 +202,18 @@ export function OrganizationManagementPage() {
   }
 
   async function handleConfirm() {
-    if (!selectedOrg || !confirmState) {
+    if (!currentOrg || !confirmState) {
       return;
     }
 
     const succeeded =
       confirmState.kind === "org-active"
         ? await mutations.setOrganizationActive(
-            selectedOrg.id,
+            currentOrg.id,
             confirmState.nextActive,
           )
         : await mutations.deactivateDepartment(
-            selectedOrg.id,
+            currentOrg.id,
             confirmState.node.id,
           );
 
@@ -339,7 +317,7 @@ export function OrganizationManagementPage() {
           ) : null}
 
           <Grid<OrganizationSummary>
-            key={`organizations-${gridVersion}`}
+            key={`organizations-${listVersion}`}
             columns={columns}
             defaultData={data?.items ?? []}
             getRowKey={(organization) => organization.id}
@@ -350,7 +328,7 @@ export function OrganizationManagementPage() {
               setSelectedOrg(organization);
             }}
             rowClassName={(organization) =>
-              organization.id === selectedOrg?.id
+              organization.id === currentOrg?.id
                 ? "organization-page__row--selected"
                 : undefined
             }
@@ -372,7 +350,7 @@ export function OrganizationManagementPage() {
           aria-label={t("organizationPage.detail.ariaLabel")}
           aria-live="polite"
         >
-          {!selectedOrg ? (
+          {!currentOrg ? (
             <Typography variant="body2" color="text.secondary">
               {t("organizationPage.detail.selectPrompt")}
             </Typography>
@@ -380,20 +358,20 @@ export function OrganizationManagementPage() {
             <>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
                 <Typography variant="h6" component="h2">
-                  {selectedOrg.name}
+                  {currentOrg.name}
                 </Typography>
                 <Chip
                   size="small"
-                  color={selectedOrg.isActive ? "success" : "default"}
+                  color={currentOrg.isActive ? "success" : "default"}
                   variant="outlined"
                   label={
-                    selectedOrg.isActive
+                    currentOrg.isActive
                       ? t("organizationPage.status.active")
                       : t("organizationPage.status.inactive")
                   }
                 />
                 <Typography variant="body2" color="text.secondary" sx={{ ml: "auto" }}>
-                  {selectedOrg.region}
+                  {currentOrg.region}
                 </Typography>
               </Box>
 
@@ -411,15 +389,15 @@ export function OrganizationManagementPage() {
                   <Button
                     size="small"
                     variant="outlined"
-                    color={selectedOrg.isActive ? "error" : "success"}
+                    color={currentOrg.isActive ? "error" : "success"}
                     onClick={() => {
                       setConfirmState({
                         kind: "org-active",
-                        nextActive: !selectedOrg.isActive,
+                        nextActive: !currentOrg.isActive,
                       });
                     }}
                   >
-                    {selectedOrg.isActive
+                    {currentOrg.isActive
                       ? t("organizationPage.actions.deactivate")
                       : t("organizationPage.actions.activate")}
                   </Button>
@@ -465,56 +443,62 @@ export function OrganizationManagementPage() {
                 {t("organizationPage.detail.membersTitle")}
               </Typography>
 
-              <OrgMemberRoster organizationId={selectedOrg.id} tree={tree} />
+              <OrgMemberRoster organizationId={currentOrg.id} tree={tree} />
             </>
           )}
         </section>
       </div>
 
-      <OrganizationFormDialog
-        open={orgDialog !== null}
-        title={
-          orgDialog === "edit"
-            ? t("organizationPage.dialogs.editOrganization")
-            : t("organizationPage.dialogs.newOrganization")
-        }
-        initialValues={
-          orgDialog === "edit" && selectedOrg
-            ? { name: selectedOrg.name, region: selectedOrg.region }
-            : undefined
-        }
-        isBusy={mutations.isBusy}
-        onSubmit={handleSaveOrganization}
-        onCancel={() => {
-          setOrgDialog(null);
-        }}
-      />
+      {orgDialog !== null ? (
+        <OrganizationFormDialog
+          open
+          title={
+            orgDialog === "edit"
+              ? t("organizationPage.dialogs.editOrganization")
+              : t("organizationPage.dialogs.newOrganization")
+          }
+          initialValues={
+            orgDialog === "edit" && currentOrg
+              ? { name: currentOrg.name, region: currentOrg.region }
+              : undefined
+          }
+          isBusy={mutations.isBusy}
+          onSubmit={handleSaveOrganization}
+          onCancel={() => {
+            setOrgDialog(null);
+          }}
+        />
+      ) : null}
 
-      <DepartmentFormDialog
-        open={deptDialog !== null}
-        title={
-          deptDialog?.mode === "rename"
-            ? t("organizationPage.dialogs.renameDepartment")
-            : t("organizationPage.dialogs.newDepartment")
-        }
-        initialName={deptDialog?.mode === "rename" ? deptDialog.node.name : ""}
-        isBusy={mutations.isBusy}
-        onSubmit={handleSaveDepartment}
-        onCancel={() => {
-          setDeptDialog(null);
-        }}
-      />
+      {deptDialog !== null ? (
+        <DepartmentFormDialog
+          open
+          title={
+            deptDialog.mode === "rename"
+              ? t("organizationPage.dialogs.renameDepartment")
+              : t("organizationPage.dialogs.newDepartment")
+          }
+          initialName={deptDialog.mode === "rename" ? deptDialog.node.name : ""}
+          isBusy={mutations.isBusy}
+          onSubmit={handleSaveDepartment}
+          onCancel={() => {
+            setDeptDialog(null);
+          }}
+        />
+      ) : null}
 
-      <MoveDepartmentDialog
-        open={moveTarget !== null}
-        department={moveTarget}
-        tree={tree}
-        isBusy={mutations.isBusy}
-        onMove={handleMoveDepartment}
-        onCancel={() => {
-          setMoveTarget(null);
-        }}
-      />
+      {moveTarget !== null ? (
+        <MoveDepartmentDialog
+          open
+          department={moveTarget}
+          tree={tree}
+          isBusy={mutations.isBusy}
+          onMove={handleMoveDepartment}
+          onCancel={() => {
+            setMoveTarget(null);
+          }}
+        />
+      ) : null}
 
       <ConfirmActionDialog
         open={confirmState !== null}
@@ -532,10 +516,10 @@ export function OrganizationManagementPage() {
               })
             : confirmState?.nextActive
               ? t("organizationPage.confirm.activateOrgMessage", {
-                  name: selectedOrg?.name ?? "",
+                  name: currentOrg?.name ?? "",
                 })
               : t("organizationPage.confirm.deactivateOrgMessage", {
-                  name: selectedOrg?.name ?? "",
+                  name: currentOrg?.name ?? "",
                 })
         }
         confirmLabel={t("common.confirm")}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Typography from "@mui/material/Typography";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
@@ -22,11 +22,11 @@ export function DepartmentTreePicker({
   disabled = false,
 }: DepartmentTreePickerProps) {
   const { t } = useTranslation();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
-
-  useEffect(() => {
-    setExpandedItems([...collectDepartmentIds(tree)]);
-  }, [tree]);
+  // Fully expanded on mount; consumers mount this component only once the tree
+  // has loaded, so no synchronization effect is needed.
+  const [expandedItems, setExpandedItems] = useState<string[]>(() => [
+    ...collectDepartmentIds(tree),
+  ]);
 
   if (tree.length === 0) {
     return (

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -29,7 +29,11 @@ export interface MoveDepartmentDialogProps {
   readonly onCancel: () => void;
 }
 
-/** Reparenting dialog: offers only valid destinations (same org, no cycles, depth cap). */
+/**
+ * Reparenting dialog: offers only valid destinations (same org, no cycles,
+ * depth cap). Mount it only while open: the selection seeds from the
+ * department's current parent on mount.
+ */
 export function MoveDepartmentDialog({
   open,
   department,
@@ -39,7 +43,6 @@ export function MoveDepartmentDialog({
   onCancel,
 }: MoveDepartmentDialogProps) {
   const { t } = useTranslation();
-  const [destination, setDestination] = useState(topLevelValue);
 
   const flattened = useMemo(() => flattenDepartmentTree(tree), [tree]);
 
@@ -52,11 +55,9 @@ export function MoveDepartmentDialog({
     [flattened, department],
   );
 
-  useEffect(() => {
-    if (open) {
-      setDestination(currentParentId ?? topLevelValue);
-    }
-  }, [open, currentParentId]);
+  const [destination, setDestination] = useState(
+    () => currentParentId ?? topLevelValue,
+  );
 
   const options = useMemo(() => {
     if (!department) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import Chip from "@mui/material/Chip";
@@ -31,7 +31,10 @@ export interface InviteUserDialogProps {
   readonly onCancel: () => void;
 }
 
-/** Admin pre-provisioning: email + name + roles + organization/department memberships. */
+/**
+ * Admin pre-provisioning: email + name + roles + organization/department
+ * memberships. Mount it only while open: the form starts empty on mount.
+ */
 export function InviteUserDialog({
   open,
   organizations,
@@ -44,15 +47,6 @@ export function InviteUserDialog({
   const [fullName, setFullName] = useState("");
   const [roles, setRoles] = useState<readonly AuthRole[]>([]);
   const [memberships, setMemberships] = useState<readonly MembershipInput[]>([]);
-
-  useEffect(() => {
-    if (open) {
-      setEmail("");
-      setFullName("");
-      setRoles([]);
-      setMemberships([]);
-    }
-  }, [open]);
 
   const trimmedEmail = email.trim();
   const trimmedName = fullName.trim();

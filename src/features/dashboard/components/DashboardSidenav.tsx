@@ -1,8 +1,10 @@
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import CorporateFareIcon from "@mui/icons-material/CorporateFare";
 import GroupsIcon from "@mui/icons-material/Groups";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import LockIcon from "@mui/icons-material/Lock";
 import LogoutIcon from "@mui/icons-material/Logout";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PrivacyTipIcon from "@mui/icons-material/PrivacyTip";
 import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
@@ -15,6 +17,8 @@ import {
   accountingPolicy,
   inventoryReadPolicy,
   isAuthorized,
+  organizationReadPolicy,
+  userManagementReadPolicy,
 } from "@/services";
 
 interface NavItem {
@@ -58,6 +62,20 @@ export function DashboardSidenav() {
       icon: AccountBalanceIcon,
       path: "/accounting",
       allowed: isAuthorized(session, accountingPolicy),
+    },
+    {
+      key: "users",
+      labelKey: "dashboard.sidenav.nav.users",
+      icon: ManageAccountsIcon,
+      path: "/users",
+      allowed: isAuthorized(session, userManagementReadPolicy),
+    },
+    {
+      key: "organizations",
+      labelKey: "dashboard.sidenav.nav.organizations",
+      icon: CorporateFareIcon,
+      path: "/organizations",
+      allowed: isAuthorized(session, organizationReadPolicy),
     },
     {
       // No CRM route exists yet; the item stays locked everywhere until that module ships.

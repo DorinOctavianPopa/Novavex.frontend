@@ -207,8 +207,10 @@ function MembershipRow({
             checked={membership.isPrimary}
             onChange={onSetPrimary}
             disabled={disabled}
-            inputProps={{
-              "aria-label": t("userManagementPage.drawer.memberships.primary"),
+            slotProps={{
+              input: {
+                "aria-label": t("userManagementPage.drawer.memberships.primary"),
+              },
             }}
           />
         </Tooltip>

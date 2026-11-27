@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -18,7 +18,10 @@ export interface OrganizationFormDialogProps {
   readonly onCancel: () => void;
 }
 
-/** Create/edit form for an organization's name and region. */
+/**
+ * Create/edit form for an organization's name and region.
+ * Mount it only while open: the fields seed from `initialValues` on mount.
+ */
 export function OrganizationFormDialog({
   open,
   title,
@@ -30,13 +33,6 @@ export function OrganizationFormDialog({
   const { t } = useTranslation();
   const [name, setName] = useState(initialValues?.name ?? "");
   const [region, setRegion] = useState(initialValues?.region ?? "");
-
-  useEffect(() => {
-    if (open) {
-      setName(initialValues?.name ?? "");
-      setRegion(initialValues?.region ?? "");
-    }
-  }, [open, initialValues]);
 
   const trimmedName = name.trim();
   const trimmedRegion = region.trim();
