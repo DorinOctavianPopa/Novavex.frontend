@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import { useTranslation } from "react-i18next";
 
-import type { SaveOrganizationRequest } from "@/features/organization/types";
+import { useAppContext } from "@/context";
+import { fetchTenants } from "@/features/organization/api/organizationsApi";
+import type { SaveOrganizationRequest, TenantSummary } from "@/features/organization/types";
 
 export interface OrganizationFormDialogProps {
   readonly open: boolean;
@@ -31,8 +35,20 @@ export function OrganizationFormDialog({
   onCancel,
 }: OrganizationFormDialogProps) {
   const { t } = useTranslation();
+  const { session } = useAppContext();
   const [name, setName] = useState(initialValues?.name ?? "");
   const [region, setRegion] = useState(initialValues?.region ?? "");
+  const [tenantId, setTenantId] = useState(initialValues?.tenantId ?? "");
+  const [tenants, setTenants] = useState<readonly TenantSummary[]>([]);
+  const [tenantError, setTenantError] = useState(false);
+  useEffect(() => {
+    if (initialValues) return;
+    const controller = new AbortController();
+    void fetchTenants(session?.accessToken ?? "", controller.signal)
+      .then(setTenants)
+      .catch(() => { if (!controller.signal.aborted) setTenantError(true); });
+    return () => controller.abort();
+  }, [initialValues, session?.accessToken]);
 
   const trimmedName = name.trim();
   const trimmedRegion = region.trim();
@@ -40,8 +56,8 @@ export function OrganizationFormDialog({
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    if (trimmedName && trimmedRegion) {
-      onSubmit({ name: trimmedName, region: trimmedRegion });
+    if (tenantId && trimmedName && trimmedRegion) {
+      onSubmit({ tenantId, name: trimmedName, region: trimmedRegion });
     }
   }
 
@@ -50,6 +66,13 @@ export function OrganizationFormDialog({
       <form onSubmit={handleSubmit}>
         <DialogTitle>{title}</DialogTitle>
         <DialogContent>
+          {!initialValues && tenantError ? <Alert severity="error">{t("organizationPage.errors.tenantLoadFailed")}</Alert> : null}
+          {!initialValues ? (
+            <TextField select fullWidth required margin="dense" label={t("organizationPage.dialogs.tenant")}
+              value={tenantId} onChange={(event) => setTenantId(event.target.value)} disabled={isBusy || tenantError}>
+              {tenants.map((tenant) => <MenuItem key={tenant.id} value={tenant.id}>{tenant.name} ({tenant.region})</MenuItem>)}
+            </TextField>
+          ) : null}
           <TextField
             autoFocus
             fullWidth
@@ -81,7 +104,7 @@ export function OrganizationFormDialog({
           <Button
             type="submit"
             variant="contained"
-            disabled={isBusy || !trimmedName || !trimmedRegion}
+            disabled={isBusy || !tenantId || !trimmedName || !trimmedRegion}
           >
             {t("common.save")}
           </Button>

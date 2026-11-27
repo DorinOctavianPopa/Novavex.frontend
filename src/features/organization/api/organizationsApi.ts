@@ -9,6 +9,7 @@ import type {
   OrganizationSummary,
   PagedResult,
   SaveOrganizationRequest,
+  TenantSummary,
   UpdateDepartmentRequest,
 } from "@/features/organization/types";
 
@@ -16,6 +17,12 @@ import type {
 // server proxies /api/* to the backend (see vite.config.ts).
 const organizationsEndpoint =
   import.meta.env.VITE_ORGS_API_BASE_URL ?? "/api/admin/organizations";
+
+export async function fetchTenants(accessToken: string, signal?: AbortSignal): Promise<readonly TenantSummary[]> {
+  const result = await apiRequest<readonly TenantSummary[]>(`${organizationsEndpoint}/tenants`, { accessToken, signal });
+  if (result === null) throw new Error("Tenant list response was empty.");
+  return result;
+}
 
 export async function fetchOrganizations(
   accessToken: string,

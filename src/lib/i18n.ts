@@ -398,6 +398,7 @@ const resources = {
         },
         errors: {
           loadFailed: "The organization list could not be loaded.",
+          tenantLoadFailed: "The tenant list could not be loaded.",
         },
         detail: {
           ariaLabel: "Organization detail",
@@ -424,6 +425,7 @@ const resources = {
           editOrganization: "Edit organization",
           organizationName: "Name",
           organizationRegion: "Region",
+          tenant: "Tenant",
           newDepartment: "New department",
           renameDepartment: "Rename department",
           departmentName: "Department name",
@@ -1050,6 +1052,7 @@ const resources = {
         },
         errors: {
           loadFailed: "Lista organizațiilor nu a putut fi încărcată.",
+          tenantLoadFailed: "Lista entităților nu a putut fi încărcată.",
         },
         detail: {
           ariaLabel: "Detalii organizație",
@@ -1078,6 +1081,7 @@ const resources = {
           editOrganization: "Editare organizație",
           organizationName: "Nume",
           organizationRegion: "Regiune",
+          tenant: "Entitate",
           newDepartment: "Departament nou",
           renameDepartment: "Redenumire departament",
           departmentName: "Numele departamentului",

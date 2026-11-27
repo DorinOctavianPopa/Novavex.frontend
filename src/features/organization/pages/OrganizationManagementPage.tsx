@@ -27,6 +27,7 @@ import { useOrganizationsQuery } from "@/features/organization/hooks/useOrganiza
 import type {
   DepartmentNode,
   OrganizationSummary,
+  SaveOrganizationRequest,
 } from "@/features/organization/types";
 import { isAuthorized, organizationWritePolicy } from "@/services";
 
@@ -147,10 +148,7 @@ export function OrganizationManagementPage() {
     setPage(1);
   }
 
-  async function handleSaveOrganization(request: {
-    name: string;
-    region: string;
-  }) {
+  async function handleSaveOrganization(request: SaveOrganizationRequest) {
     const succeeded =
       orgDialog === "edit" && currentOrg
         ? await mutations.updateOrganization(currentOrg.id, request)
@@ -459,7 +457,7 @@ export function OrganizationManagementPage() {
           }
           initialValues={
             orgDialog === "edit" && currentOrg
-              ? { name: currentOrg.name, region: currentOrg.region }
+              ? { tenantId: currentOrg.tenantId, name: currentOrg.name, region: currentOrg.region }
               : undefined
           }
           isBusy={mutations.isBusy}

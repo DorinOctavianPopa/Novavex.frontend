@@ -5,8 +5,15 @@ export interface PagedResult<T> {
   readonly totalCount: number;
 }
 
+export interface TenantSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly region: string;
+}
+
 export interface OrganizationSummary {
   readonly id: string;
+  readonly tenantId: string;
   readonly name: string;
   readonly region: string;
   readonly isActive: boolean;
@@ -59,6 +66,7 @@ export interface OrganizationMembersParams {
 }
 
 export interface SaveOrganizationRequest {
+  readonly tenantId: string;
   readonly name: string;
   readonly region: string;
 }
