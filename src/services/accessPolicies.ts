@@ -22,3 +22,30 @@ export const accountingPolicy: AccessPolicy = {
     'junior_accountant',
   ],
 }
+
+// User management: cto can view the user base, but only super_admin can mutate it.
+export const userManagementReadPolicy: AccessPolicy = {
+  anyRoles: ['super_admin', 'cto'],
+  allScopes: ['users:read'],
+}
+
+export const userManagementWritePolicy: AccessPolicy = {
+  anyRoles: ['super_admin'],
+  allScopes: ['users:write'],
+}
+
+export const userManagementAdminPolicy: AccessPolicy = {
+  anyRoles: ['super_admin'],
+  allScopes: ['users:admin'],
+}
+
+// Organization & department management mirrors the same read/write split.
+export const organizationReadPolicy: AccessPolicy = {
+  anyRoles: ['super_admin', 'cto'],
+  allScopes: ['organizations:read'],
+}
+
+export const organizationWritePolicy: AccessPolicy = {
+  anyRoles: ['super_admin'],
+  allScopes: ['organizations:write'],
+}

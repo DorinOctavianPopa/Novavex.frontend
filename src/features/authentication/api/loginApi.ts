@@ -219,6 +219,9 @@ export function buildSessionFromAccessToken(
       id: toStringClaim(claims.sub),
       email: toStringClaim(claims.email),
       roles: toStringArray(claims.role) as AuthRole[],
+      organizationIds: toStringArray(claims.org_ids),
+      primaryOrganizationId: toStringClaim(claims.primary_org_id),
+      departmentIds: toStringArray(claims.department_ids),
       attributes: {
         tenantId: toStringClaim(claims.tenant_id),
         region: toStringClaim(claims.region),

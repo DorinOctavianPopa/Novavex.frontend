@@ -19,6 +19,12 @@ export interface AuthUser {
   readonly email: string
   readonly roles: readonly AuthRole[]
   readonly attributes: UserAttributes
+  /** Ids of every organization the user is an active member of. */
+  readonly organizationIds: readonly string[]
+  /** Id of the membership flagged as primary; drives the flat ABAC claims. */
+  readonly primaryOrganizationId: string
+  /** Ids of every department (across organizations) the user belongs to. */
+  readonly departmentIds: readonly string[]
 }
 
 export interface AuthSession {
@@ -39,4 +45,8 @@ export interface AccessPolicy {
   readonly anyRoles?: readonly AuthRole[]
   readonly allScopes?: readonly string[]
   readonly attributeRules?: readonly AttributeRule[]
+  /** Passes when the user belongs to at least one of these organizations. Empty/undefined always passes. */
+  readonly anyOrganizations?: readonly string[]
+  /** Passes when the user belongs to at least one of these departments. Empty/undefined always passes. */
+  readonly anyDepartments?: readonly string[]
 }

@@ -26,6 +26,26 @@ function matchesAttributes(session: AuthSession, policy: AccessPolicy) {
   )
 }
 
+function matchesOrganizations(session: AuthSession, policy: AccessPolicy) {
+  if (!policy.anyOrganizations?.length) {
+    return true
+  }
+
+  return policy.anyOrganizations.some((organizationId) =>
+    session.user.organizationIds.includes(organizationId),
+  )
+}
+
+function matchesDepartments(session: AuthSession, policy: AccessPolicy) {
+  if (!policy.anyDepartments?.length) {
+    return true
+  }
+
+  return policy.anyDepartments.some((departmentId) =>
+    session.user.departmentIds.includes(departmentId),
+  )
+}
+
 export function isAuthorized(session: AuthSession | null, policy: AccessPolicy) {
   if (!session?.isAuthenticated) {
     return false
@@ -34,6 +54,8 @@ export function isAuthorized(session: AuthSession | null, policy: AccessPolicy) 
   return (
     matchesRoles(session, policy) &&
     matchesScopes(session, policy) &&
-    matchesAttributes(session, policy)
+    matchesAttributes(session, policy) &&
+    matchesOrganizations(session, policy) &&
+    matchesDepartments(session, policy)
   )
 }
